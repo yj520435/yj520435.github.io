@@ -18,8 +18,6 @@ import router from './router'
 
 const axios = require('axios')
 
-console.log(process.env)
-
 const get = async () => {
   const url = `8700087200248395088/posts/7616039949235559118?key=${process.env.VUE_APP_API_KEY}`;
 
