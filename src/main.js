@@ -22,8 +22,9 @@ const get = async () => {
   const blogId = '8700087200248395088'
   const postId = '7616039949235559118'
   const apiKey = process.env.VUE_APP_API_KEY
-  const url = `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}?key=${apiKey}`;
-  axios.get(url).then(res => {
+  axios.get(`https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}`, {
+    params: { key: apiKey }
+  }).then(res => {
     console.log(res.data)
   })
 }
