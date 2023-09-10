@@ -19,8 +19,10 @@ import router from './router'
 const axios = require('axios')
 
 const get = async () => {
-  const url = `8700087200248395088/posts/7616039949235559118?key=${process.env.VUE_APP_API_KEY}`;
-
+  const blogId = '8700087200248395088'
+  const postId = '7616039949235559118'
+  const apiKey = process.env.VUE_APP_API_KEY
+  const url = `https://www.googleapis.com/blogger/v3/blogs/${blogId}/posts/${postId}?key=${apiKey}`;
   axios.get(url).then(res => {
     console.log(res.data)
   })
