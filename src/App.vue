@@ -33,7 +33,6 @@ export default {
     const router = useRouter()
     const posts = inject('posts')
 
-    const init = ref(posts[0].id)
     const isFirst = ref(false)
     const isLast = ref(false)
 
@@ -41,7 +40,7 @@ export default {
 
     watch(route, () => {
       if (route.fullPath === '/')
-        router.push(`/${init.value}`)
+        router.push('/2023')
     })
 
     const contents = ref('')

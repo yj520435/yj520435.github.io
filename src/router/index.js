@@ -1,17 +1,21 @@
 import { createWebHistory, createRouter } from "vue-router";
+import App from '@/App.vue'
 import BasicLayout from '@/components/BasicLayout.vue'
 import ArchiveLayout from '@/components/ArchiveLayout.vue'
 
 const routes = [
   {
-    path: "/:id",
-    name: "Blog",
-    component: BasicLayout
+    path: "/",
+    name: App,
   },
   {
-    path: "/archive",
-    name: "Archive",
-    component: ArchiveLayout
+    path: "/:year",
+    name: "Blog",
+    component: ArchiveLayout,
+    children: [{
+      path: ":day",
+      component: BasicLayout
+    }]
   }
 ]
 

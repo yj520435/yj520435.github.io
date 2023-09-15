@@ -1,10 +1,16 @@
 <template>
   <div id="archive-layout-wrapper">
-    <section class="archive" v-for="columnIndex of columnCount" :key="columnIndex">
+    <section
+      class="archive"
+      :class="{ mobile : isMobile }"
+      v-for="columnIndex of columnCount"
+      :key="columnIndex"
+    >
       <div
         v-for="post of postArray(posts, columnIndex-1)"
         :key="post.id"
         class="post"
+        :class="{ mobile : isMobile }"
         v-html="getContents(post.contents)"
         >
       </div>
@@ -21,11 +27,16 @@ export default {
   },
   setup(props) {
     const columnCount = ref(0)
+    const isMobile = ref(false)
 
-    const calcColumnCount = () => {
+    const calcColumnCount = async () => {
       const innerWidth = window.innerWidth;
-      const count = Math.floor(innerWidth / 430)
+      let count = Math.floor(innerWidth / 430)
+      count = (count === 0) ? 1 : count
       columnCount.value = props.posts.length < count ? props.posts.length : count
+
+      await nextTick()
+      isMobile.value = window.innerWidth < 500
     }
 
     const getImageLayout = async () => {
@@ -44,26 +55,23 @@ export default {
     })
 
     return {
-      columnCount
+      columnCount,
+      isMobile
     }
   },
   methods: {
     postArray(posts, columnIndex) {
-      console.log('## posts', posts)
-      console.log('## columnIndex', columnIndex)
       let array = []
       for (let [index, post] of posts.entries()) {
-         if ((index % this.columnCount) === columnIndex)
+        if ((index % this.columnCount) === columnIndex)
           array.push(post)
       }
       return array
     },
     getContents(contents) {
-      console.log('##', contents)
       let text = ''
-      for (const line of contents) {
+      for (const line of contents)
         text += line
-      }
       return text
     }
   }
@@ -86,6 +94,11 @@ export default {
   justify-content: flex-start;
 }
 
+.archive.mobile {
+  width: 100%;
+  gap: 20px;
+}
+
 .post {
   width: 410px;
   height: fit-content;
@@ -98,6 +111,13 @@ export default {
   position: relative;
   text-align: left;
   line-height: 1.3;
+}
+
+.post.mobile {
+  width: 100%;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
 }
 
 .post img {
