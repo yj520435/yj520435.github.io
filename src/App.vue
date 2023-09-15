@@ -83,6 +83,13 @@ export default {
 </script>
 
 <style>
+@font-face {
+  font-family: 'BMJUA';
+  src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/BMJUA.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
 html, body {
   padding: 0;
   margin: 0;
@@ -99,7 +106,7 @@ body::-webkit-scrollbar {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  font-family: '배달의민족 주아';
+  font-family: 'BMJUA';
   font-size: 20px;
   display: flex;
   justify-content: flex-start;
