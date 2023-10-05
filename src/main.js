@@ -1,9 +1,19 @@
 import { createApp } from 'vue'
 import App from './App.vue'
-import router from './router'
+
+import './assets/style.css'
+
+
+
+createApp(App).mount('#app')
+
+/*
+// import posts from '../posts/2023.json'
 import { Octokit } from 'octokit'
 
 const octokit = new Octokit({})
+
+
 const repo = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
   owner: 'yj520435',
   repo: 'yj520435.github.io',
@@ -13,5 +23,4 @@ const repo = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', 
   }
 })
 const posts = JSON.parse(atob(repo.data.content))
-
-createApp(App).use(router).provide('posts', posts).mount('#app')
+*/
