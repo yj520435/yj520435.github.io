@@ -1,27 +1,104 @@
 [
   {
-    "id": 2023070300,
+    "id": 2023112400,
+    "figure": "https://upload.wikimedia.org/wikipedia/en/2/2c/SZA_-_S.O.S.png",
+    "title": "Snooze",
+    "artist": "SZA",
+    "album": "SOS",
+    "release": "2022-12-09",
+    "jenre": ["r&b", "hiphop", "pop"],
+    "video": "Sv5yCzPCkv8?si=uynCTIhPyQHRKJ8G",
+    "tag": "zukebox"
+  },
+  {
+    "id": 2023111900,
+    "figure": "https://upload.wikimedia.org/wikipedia/en/thumb/a/a0/Ariana_Grande_-_Positions.png/220px-Ariana_Grande_-_Positions.png",
+    "title": "Positions",
+    "artist": "Ariana Grande",
+    "album": "Positions",
+    "release": "2020-10-30",
+    "jenre": ["r&b, pop"],
+    "video": "tcYodQoapMg?si=0PprhF2uAgBwSfu9",
+    "tag": "zukebox"
+  },
+  {
+    "id": 2023111410,
+    "figure": "1yLz7fbqBZNR01laz3xCrWni1Q8DA5PyR",
+    "title": "사라진 나라의 아이들",
+    "author": "이성진 저, 고즈넉이엔티",
     "contents": [
-      "<figure>",
-      "<img alt='1YGUzLVoImhSxjlijdozBapcAD4p4moTo'>",
-      "<img alt='1o0p4m30-567LlTF-nKVEMMKzThClr6_V'>",
-      "<img alt='173hBBQ6mrvuzychV87UuHFB-ow7eRPz0'>",
-      "<img alt='1OQn5AzD1s1V5o7kRz4IA9rbQeCB2zGr1'>",
-      "</figure>",
-      "<p>영월 여행 ✈️</p>",
-      "<p>요선암, 주천묵집, 한반도지형, 카페느리게, 별마로천문대, 서부시장, 포리상점, 중부내륙</p>"
-    ]
+      "애매모호. 무너진 나라의 비통함에 초점을 맞췄다기엔 이야기의 깊이가 너무 얕고, ",
+      "영아살인사건이라는 스릴러적 소재에 초점을 맞췄다기엔 주인공이 한없이 평면적이다. (나쁜 말로 하자면 그냥 멍청함)<br><br>",
+      "이야기가 전반적으로 세밀하지 못하고 투박한 느낌이었으며 급하게 무마한 것만 같은 찌뿌둥한 결말 역시 매우 아쉬웠다.<br><br>",
+      "덧) 요즘 책들은 따로 검수를 안하는건지... '일부로', '황망한 표정' 진짜 에반데ㅋ"
+    ],
+    "tag": "book"
+  },
+  {
+    "id": 2023103100,
+    "figure": "1T--DbYSPjjv7K6p0OhkYR4WXFD1oGHer",
+    "title": "신경 끄기 연습",
+    "author": "나이토 요시히토 저, 김한나 역, 유노책주",
+    "contents": [
+      "도움이 되는지는 잘 모르겠고 황당하고 웃겨서 재미있게는 읽었다ㅋㅋ<br><br>",
+      "<q>아침에 집을 나서기 전 '아마 오늘도 기분 나쁜 사람들만 만나겠지?'라고 생각하면 ",
+      "실제로 기분 나쁜 사람을 만나더라도 그다지 놀라지 않고 스트레스도 느끼지 않게 된다.</q><br>",
+      "<q>남과 경쟁하는 행동은 기본적으로 피하는 것이 인생의 철칙이다. ",
+      "사실 다른 사람과 경쟁해 봤자 피곤하기만 할 뿐이다. ",
+      "1위를 목표로 하는 건 당치도 않다. 2위도 안 된다. 목표는 3위 정도로 설정해 놓기를 추천한다. ",
+      "... 특히 직장에서는 최고가 되지 않도록 주의하자.</q>"
+    ],
+    "tag": "book"
+  },
+  {
+    "id": 2023101900,
+    "figure": "1t9aNZb0RKFXrreGWAWHyayBmJQvU_ras",
+    "title": "망해버린 이번 생을 애도하며",
+    "author": "정지혜 저, 몽실북스",
+    "contents": ["망해버린 이번 생을 애도하며<br>"],
+    "tag": "book"
+  },
+  {
+    "id": 2023100600,
+    "figure": "1C82QgGzYEzuyl__2jleCzfr51Firdhgo",
+    "title": "우리의 밤이 시작되는 곳",
+    "author": "고요한 저, 나무옆의자",
+    "contents": [
+      "<q>저도 죽으면 사람들에게 알리지 말고 장례를 치르라고 유언을 남길거예요.",
+      "울면서 태어났지만 죽을 땐 조용히 떠나고 싶어. 왔다 간 흔적조차 없이.</q>"
+    ],
+    "tag": "book"
+  },
+  {
+    "id": 2023070300,
+    "figure": [
+      "1YGUzLVoImhSxjlijdozBapcAD4p4moTo",
+      "1o0p4m30-567LlTF-nKVEMMKzThClr6_V",
+      "173hBBQ6mrvuzychV87UuHFB-ow7eRPz0",
+      "1OQn5AzD1s1V5o7kRz4IA9rbQeCB2zGr1"
+    ],
+    "contents": [
+      "영월 여행<br><br>",
+      "요선암, 주천묵집, 한반도지형, 카페느리게, 별마로천문대, 서부시장, 포리상점, 중부내륙"
+    ],
+    "tag": "day"
   },
   {
     "id": 2023060523,
-    "contents": "물 들어올 때 노 저어야 하는데 노를 던지다 못해 작살을 내버린 😂"
+    "contents": "물 들어올 때 노 저어야 하는데 노를 던지다 못해 작살을 내버린 😂",
+    "tag": "day"
+  },
+  {
+    "id": 2023060100,
+    "figure": "1mv9glcSD1JpNYesyqtO2p4ISyaM5vgCJ",
+    "title": "한성부, 달 밝은 밤에",
+    "author": "김이삭 저, 고즈넉이엔티",
+    "contents": [],
+    "tag": "book"
   },
   {
     "id": 2023042004,
-    "contents": "안녕 잘가"
-  },
-  {
-    "id": 2023042003,
-    "contents": "테스트"
+    "contents": "안녕 잘가",
+    "tag": "day"
   }
 ]
