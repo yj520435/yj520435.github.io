@@ -9,11 +9,28 @@ import dayjs from 'dayjs';
 
 const store = useStore()
 
+// Zoom & Scale
+
 const scale = ref(1);
+const zoom = ref(false);
+const zoomIcon = computed(() => zoom.value ? 'minimize' : 'maximize');
+const style = computed(() => `transform: scale(${scale.value})`)
+
 function resize(event?: any) {
   const width = event ? event.target.innerWidth : window.innerWidth
   scale.value = 1 + (width - 500) * (0.3 / 1420);
 }
+
+watch(zoom, (v) => {
+  if (v) {
+    resize()
+    window.addEventListener('resize', resize);
+  }
+  else {
+    scale.value = 1
+    window.removeEventListener('resize', resize);
+  }
+})
 
 // Projects
 const color = ref(false)
@@ -106,14 +123,32 @@ const lastBuild = ref()
 onMounted(async () => {
   paths.value.push(ARCHIVE_ROOT)
   lastBuild.value = document.documentElement.dataset.build;
-  // resize()
-  // window.addEventListener('resize', resize)
 })
+
+
+function login() {
+  //
+}
 </script>
 
 <template>
-  <main id="root" class="scroll" :class="{ 'no-scroll' : shadow }">
-    <div :style="`transform: scale(${scale})`">
+  <main id="root" class="scroll">
+    <nav v-if="!shadow">
+      <div>
+        <!-- <button
+          class="admin"
+          :style="style"
+          @click="login"
+        /> -->
+        <button
+          class="zoom"
+          :class="zoom ? 'minimize' : 'maximize'"
+          :style="style"
+          @click="zoom = !zoom"
+        />
+      </div>
+    </nav>
+    <div :style="style">
       <header>
         <div id="avatar">
           <img :src="require('@/assets/images/profile.png')" alt="">
@@ -229,16 +264,8 @@ onMounted(async () => {
         </div>
         <div v-else class="view">
           <ul class="list">
-            <li
-              v-if="!isRoot"
-              class="root"
-              @click="paths = [ARCHIVE_ROOT]"
-            >.</li>
-            <li
-              v-if="!isRoot"
-              class="back"
-              @click="paths.pop()"
-            >..</li>
+            <li v-if="!isRoot" class="root" @click="paths = [ARCHIVE_ROOT]">.</li>
+            <li v-if="!isRoot" class="back" @click="paths.pop()">..</li>
             <li
               v-for="file of files"
               :key="file.id"
@@ -259,15 +286,25 @@ onMounted(async () => {
       </footer>
     </div>
   </main>
-  <main id="shadow" v-if="shadow">
+  <!-- MODAL -->
+  <main id="shadow" v-if="shadow" :style="style">
     <div v-if="reading" class="loading">
       <img :src="require('@/assets/icons/search.svg')" alt="loading">
     </div>
-    <div v-else class="article">
+    <div
+      v-else
+      class="article"
+      :style="{ height: `${(1 / scale) * 100}%` }"
+    >
       <div class="buttons" :class="show">
         <button class="close" @click="close"/>
       </div>
-      <article v-html="html" ref="articleRef" class="scroll" @wheel.passive="wheel" />
+      <article
+        v-html="html"
+        ref="articleRef"
+        class="scroll"
+        @wheel.passive="wheel"
+      />
     </div>
   </main>
 </template>

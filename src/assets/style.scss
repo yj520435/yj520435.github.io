@@ -68,6 +68,7 @@ button {
   @extend .label;
   top: 8px;
   left: 17px;
+  padding: 0 2px 0 4px;
 }
 
 .counts {
@@ -140,11 +141,13 @@ button {
   height: 100%;
   margin: 0 auto;
   top: 0;
+  transform-origin: center;
 
   div.loading {
     @extend .center;
     border: none;
     background-color: transparent;
+    transform-origin: top;
 
     img {
       width: 36px;
@@ -161,7 +164,6 @@ button {
     background-color: #ffffff;
     width: 100%;
     max-width: 600px;
-    height: 100%;
 
     div.buttons {
       position: absolute;
@@ -351,6 +353,45 @@ button {
 
   &.no-scroll {
     overflow-y: hidden;
+  }
+
+  nav {
+    position: relative;
+    width: 100%;
+    z-index: 3;
+
+    div {
+      position: absolute;
+      display: flex;
+      justify-content: right;
+      width: 100%;
+      gap: 10px;
+
+      button {
+        border: none;
+        padding: 0;
+        background-color: transparent;
+        filter: $filter;
+        margin-right: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        width: 16px;
+        height: 16px;
+
+        &.admin {
+          background-image: url('@/assets/icons/unlock.svg');
+        }
+
+        &.zoom.maximize {
+          background-image: url('@/assets/icons/maximize.svg');
+        }
+
+        &.zoom.minimize {
+          background-image: url('@/assets/icons/minimize.svg');
+        }
+      }
+    }
   }
 
   > div {
