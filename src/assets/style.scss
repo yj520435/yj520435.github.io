@@ -478,7 +478,6 @@ button {
       a {
         color: $text-color;
         letter-spacing: 1px;
-        text-decoration: none;
       }
     }
 
@@ -591,13 +590,10 @@ button {
 
     li.name {
       cursor: pointer;
+      text-decoration: underline;
 
       &::before {
         background-image: url('@/assets/icons/pin.svg');
-      }
-
-      &:hover {
-        text-decoration: underline;
       }
     }
 
