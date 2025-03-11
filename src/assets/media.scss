@@ -1,8 +1,14 @@
 // Mobile
 
 @media (width < 500px) {
-  .wrapper {
-    grid-template-columns: auto auto;
+  #education ul li span .full {
+    display: none;
+  }
+}
+
+@media (width >= 500px) {
+  #education ul li span .abbr {
+    display: none;
   }
 }
 
@@ -15,5 +21,11 @@
 @media (width >= 510px) {
   #project .image {
     height: 290px;
+  }
+}
+
+@media (width < 650px) {
+  button.zoom {
+    display: none !important;
   }
 }

@@ -183,7 +183,16 @@ onMounted(async () => {
         <section id="education">
           <span class="title">EDUCATION</span>
           <ul class="outline list">
-            <li>인천대학교 컴퓨터공학부</li>
+            <li>
+              <span>
+                <span class="full">인천대학교</span>
+                <a
+                  class="abbr"
+                  href="https://www.inu.ac.kr/inu/index.do?epTicket=LOG"
+                  target="_blank">INU</a>
+                컴퓨터공학부
+              </span>
+            </li>
           </ul>
         </section>
         <!-- CERTIFICATES -->
@@ -320,7 +329,6 @@ onMounted(async () => {
         v-html="html"
         ref="articleRef"
         class="scroll"
-        @wheel.passive="wheel"
       />
     </div>
   </main>
