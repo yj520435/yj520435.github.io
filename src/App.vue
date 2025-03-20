@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, Ref, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, Ref, ref, watch } from 'vue';
 import { File } from './types';
-import { addMouseEvent, filterAndSort, getIcon, loadFile, loadFolder, preloadImage } from './utils';
+import { addMouseEvent, filterAndSort, getCookie, getIcon, loadFile, loadFolder, preloadImage } from './utils';
 import { Converter } from 'showdown';
-import { useItemStore } from './store';
+import { useAuthStore, useItemStore } from './store';
 import { ARCHIVE_ROOT, companies, FOLDER_MIME_TYPE, projects, skills } from './constants';
 import dayjs from 'dayjs';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.css'
 
-const store = useItemStore();
+const itemStore = useItemStore();
+const authStore = useAuthStore();
 
 // Zoom & Scale
 const scale = ref(1);
@@ -73,7 +74,7 @@ async function load(id: string) {
   files.value = [];
   loading.value = true;
 
-  const storedFiles = store.get(id);
+  const storedFiles = itemStore.get(id);
 
   if (storedFiles) {
     files.value = storedFiles.items;
@@ -81,7 +82,7 @@ async function load(id: string) {
     const result = await loadFolder(id);
     if (result.length > 0)
       files.value = filterAndSort(result);
-    store.set(id, files.value);
+    itemStore.set(id, files.value);
   }
 
   loading.value = false;
@@ -139,28 +140,67 @@ function wheel(event: WheelEvent) {
 // Footer
 const lastBuild = ref()
 
+// Auth
+let authIntervalHandler: any = null;
+const expired = computed(() => authStore.expired);
+const expiryTimer = ref();
+
+watch(expired, (v) => {
+  if (v) {
+    const interval = () => expiryTimer.value = Math.abs(dayjs().diff(v, 'minute'));
+    interval();
+    authIntervalHandler = setInterval(interval, 1000 * 60);
+  } else {
+    clearInterval(authIntervalHandler);
+  }
+})
+
 onMounted(async () => {
   preloadImage(projects);
+
+  // initTokenClient();
+
+  // Check Cookie for Auth
+  // const storedExpired = getCookie('EXP');
+  // if (storedExpired)
+  //  auth.init(storedExpired);
+
   paths.value.push(ARCHIVE_ROOT);
   lastBuild.value = document.documentElement.dataset.build;
 })
+
+onUnmounted(() => {
+  clearInterval(authIntervalHandler);
+})
+
+const loginRef = ref();
 </script>
 
 <template>
   <main id="root" class="scroll">
     <nav v-if="!shadow">
       <div>
-        <!-- <button
-          class="admin"
-          :style="style"
-          @click="login"
-        /> -->
+        <!--
+          <button
+            class="admin"
+            :class="expired ? 'log-out' : 'log-in'"
+            :style="style"
+            @click="() => {
+              if (expired) logout();
+              else requestAccessToken();
+            }"
+          />
+        -->
         <button
           class="zoom"
           :class="zoom ? 'minimize' : 'maximize'"
           :style="style"
           @click="zoom = !zoom"
         />
+        <div v-if="expired" class="bubble">
+          <span>{{ getCookie('NAME') }}</span>
+          <span><strong>{{ expiryTimer }}</strong> 분 후 인증 만료</span>
+        </div>
       </div>
     </nav>
     <div :style="style">
@@ -332,7 +372,6 @@ onMounted(async () => {
       />
     </div>
   </main>
-  <div id="secret" />
 </template>
 
 <style lang="scss">

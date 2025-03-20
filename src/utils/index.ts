@@ -1,4 +1,5 @@
 import { API_KEY, API_URL, FOLDER_MIME_TYPE } from '@/constants';
+import { useAuthStore } from '@/store';
 import { File, MimeType, Project } from '@/types';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -170,47 +171,78 @@ export function addMouseEvent(elements: HTMLElement[]) {
   }
 }
 
-export function login() {
-  window.google.accounts.id.initialize({
-    client_id: '827293727138-rpq0n9svbmdlu0hup4h4qiagvs8hujio.apps.googleusercontent.com',
-    callback: handleCredentialResponse,
-    ux_mode: 'popup',
-  });
-  window.google.accounts.id.prompt();
+export function logout() {
+  const token = getCookie('TOKEN');
+  if (token) {
+    (window as any).google.accounts.oauth2.revoke(token, () => {
+      const auth = useAuthStore();
+      auth.revoke();
+    });
+  }
 }
 
-function handleCredentialResponse(response: any) {
-  const user = JSON.parse(atob(response.credential.split('.')[1]));
-  console.log('>> User', user);
+let client: any = null;
 
-  const client = window.google.accounts.oauth2.initTokenClient({
+export function initTokenClient() {
+  client = (window as any).google.accounts.oauth2.initTokenClient({
     client_id: '827293727138-rpq0n9svbmdlu0hup4h4qiagvs8hujio.apps.googleusercontent.com',
     scope: 'https://www.googleapis.com/auth/drive',
-    callback: (data) => {
-      const expire = dayjs().add(1, 'hour').toDate();
-
-      // const now = new Date();
-      // const time = now.getTime();
-      // now.setTime(time + 1000 * 3600);
-      // const expire = dayjs().add(1, 'hour').format('YYYY-MM-DD HH:mm:ss');
-
-      // const auth = useAuthStore();
-      // auth.init(expire);
-
-      if ('access_token' in data)
-        document.cookie = `token=${data.access_token};expires=${expire.toUTCString()}`;
-    },
+    callback: handleTokenResponse,
   });
+}
 
+export function requestAccessToken() {
   client.requestAccessToken();
 }
 
-export function preloadImage(projects: Project[]) {
-  const div = document.querySelector('#secret');
+function handleTokenResponse(data: any) {
+  const { access_token, expires_in, token_type } = data;
+  const expired = dayjs().add(expires_in, 'second');
 
-  for (const project of projects) {
+  axios({
+    url: 'https://www.googleapis.com/drive/v3/about?fields=user',
+    headers: {
+      Authorization: `${token_type} ${access_token}`,
+    },
+  }).then((res) => {
+    const { displayName: name, emailAddress: email } = res.data.user;
+
+    const auth = useAuthStore();
+    auth.save({
+      token: access_token,
+      expired: expired.toDate(),
+      user: { name, email },
+    });
+  });
+}
+
+export function preloadImage(projects: Project[]) {
+  const load = (path: string) => {
     const image = new Image();
-    image.src = require(`@/assets/images/${project.id}.gif`);
-    div?.append(image);
+    image.src = require(`@/assets/${path}`);
+  };
+
+  // Icons
+  const icons = ['search', 'home', 'folder', 'file'];
+  for (const icon of icons) {
+    load(`icons/${icon}.svg`);
   }
+
+  // Project Images
+  for (const project of projects) {
+    load(`images/${project.id}.gif`);
+  }
+}
+
+export function requestExpires(): string {
+  const storedToken = getCookie('TOKEN');
+  const storedExpireDate = getCookie('EXP');
+  return storedToken && storedExpireDate ? storedExpireDate : '';
+}
+
+export function getCookie(key: string) {
+  return document.cookie
+    .split('; ')
+    .find((row) => row.startsWith(`${key}=`))
+    ?.split('=')[1];
 }

@@ -391,12 +391,20 @@ button {
     width: 100%;
     z-index: 3;
 
-    div {
+    > div {
       position: absolute;
       display: flex;
+      align-items: center;
       justify-content: right;
       width: 100%;
       gap: 10px;
+
+      .timestamp {
+        color: $text-color;
+        font-family: 'Galmuri7';
+        font-size: 9px;
+        letter-spacing: 1px;
+      }
 
       button {
         border: none;
@@ -410,8 +418,12 @@ button {
         width: 16px;
         height: 16px;
 
-        &.admin {
-          background-image: url('@/assets/icons/unlock.svg');
+        &.admin.log-in {
+          background-image: url('@/assets/icons/log-in.svg');
+        }
+
+        &.admin.log-out {
+          background-image: url('@/assets/icons/log-out.svg');
         }
 
         &.zoom.maximize {
@@ -420,6 +432,38 @@ button {
 
         &.zoom.minimize {
           background-image: url('@/assets/icons/minimize.svg');
+        }
+      }
+
+      .bubble {
+        background-color: #00000070;
+        opacity: 0.7;
+        width: 160px;
+        color: $text-color;
+        padding: 10px;
+        position: absolute;
+        top: 30px;
+        border-radius: 10px;
+        text-align: left;
+        display: grid;
+        gap: 4px;
+
+        span {
+          display: flex;
+          align-items: center;
+
+          &:first-child {
+            font-family: 'galmuri11';
+            font-size: 12px;
+            font-weight: bold;
+          }
+
+          strong {
+            font-family: 'galmuri7';
+            letter-spacing: 1px;
+            font-size: 12px;
+            font-weight: normal;
+          }
         }
       }
     }
@@ -606,10 +650,7 @@ button {
   ul.disabled {
     li.name {
       cursor: default;
-
-      &:hover {
-        text-decoration: none;
-      }
+      text-decoration: none;
     }
   }
 }
@@ -766,8 +807,4 @@ div.career-list {
     margin: 0 !important;
     padding: 0 25px;
   }
-}
-
-#secret {
-  display: none;
 }

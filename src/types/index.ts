@@ -1,5 +1,3 @@
-import { Component } from 'vue';
-
 export interface Tab {
   id: string;
   name: string;
@@ -36,20 +34,8 @@ export interface Category {
 }
 
 export interface User {
-  aud: string;
-  azp: string;
-  email: string;
-  email_verified: boolean;
-  exp: number;
-  family_name: string;
-  given_name: string;
-  iat: number;
-  iss: string;
-  jti: string;
   name: string;
-  nbf: number;
-  picture: string;
-  sub: string;
+  email: string;
 }
 
 export type MimeType = 'application/vnd.google-apps.folder' | 'text/x-markdown';
