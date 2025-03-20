@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@highlightjs/vue-plugin": "^2.1.0",
-    "axios": "^1.7.7",
+    "axios": "^1.8.2",
     "core-js": "^3.8.3",
     "dayjs": "^1.11.11",
     "highlight.js": "^11.11.1",
