@@ -1,15 +1,12 @@
-export interface Tab {
-  id: string;
-  name: string;
-  // component: Component;
-}
-
 export interface Company {
   id: string;
   name: string;
   from: string;
   to: string;
-  projects: Project[];
+  department: string;
+  position: string;
+  description: string;
+  tasks: string[];
 }
 
 export interface Project {
@@ -27,15 +24,11 @@ export interface File {
   mimeType: MimeType;
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  items?: string[];
-}
-
-export interface User {
-  name: string;
-  email: string;
+export interface Account {
+  accessToken: string;
+  expiryDate: Date;
+  userName: string;
+  userEmail: string;
 }
 
 export type MimeType = 'application/vnd.google-apps.folder' | 'text/x-markdown';

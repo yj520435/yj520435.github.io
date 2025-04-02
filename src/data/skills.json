@@ -7,7 +7,7 @@
   {
     "id": "Back-End",
     "name": "백엔드",
-    "items": ["Java", "Spring", "PostgreSQL"]
+    "items": ["Java", "Spring Boot", "PostgreSQL"]
   },
   {
     "id": "SCM",
