@@ -51,11 +51,11 @@ function submit() {
 
     .inner {
       @extend .flex-center;
+      flex-direction: column;
       width: calc(100% - 10px);
       height: calc(100% - 10px);
       border: 1px solid $text-color;
       margin: 5px;
-      flex-direction: column;
       gap: 30px;
       padding: 20px;
 
@@ -91,7 +91,7 @@ function submit() {
           background-color: #dddddd30;
 
           &.submit {
-            background-color: #32cd3260;
+            background-color: #32cd3230;
           }
         }
       }

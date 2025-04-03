@@ -48,7 +48,7 @@ function load(file: File) {
   else emits('load', file);
 }
 
-async function remove() {
+async function trash() {
   popupStore.show({
     type: 'confirm',
     icon: 'close',
@@ -136,6 +136,43 @@ function icon(file: File): string {
   }
 }
 
+const options = ref([
+  {
+    id: 'create-new-folder',
+    icon: 'folder',
+    disabled: () => isSelectMode.value,
+    action: () => create(FOLDER_MIME_TYPE)
+  },
+  {
+    id: 'create-new-file',
+    icon: 'file',
+    disabled: () => isSelectMode.value,
+    action: () => create('text/x-markdown')
+  },
+  {
+    id: 'select-file',
+    icon: 'checkbox',
+    disabled: () => false,
+    action: () => isSelectMode.value = !isSelectMode.value
+  },
+  {
+    id: 'update-file',
+    icon: 'pencil',
+    disabled: () => selectedFiles.value.length !== 1
+  },
+  {
+    id: 'trash-file',
+    icon: 'unknown',
+    disabled: () => !isSelectMode.value || selectedFiles.value.length === 0,
+    action: () => trash()
+  }
+]);
+
+watch (isSelectMode, (v) => {
+  if (!v)
+    selectedFiles.value = [];
+});
+
 onMounted(() => {
   paths.value.push(ROOT_FOLDER_ID);
 })
@@ -173,11 +210,17 @@ onMounted(() => {
       </div>
     </div>
     <div v-if="isAuthenticated" class="options">
-      <button class="new-folder" @click="create(FOLDER_MIME_TYPE)" />
-      <button class="new-file" @click="create('text/x-markdown')" />
-      <button class="select" @click="isSelectMode = !isSelectMode" />
-      <button class="rename" />
-      <button class="trash" />
+      <button
+        v-for="option of options"
+        :key="option.id"
+        @click="option.action"
+        :disabled="option.disabled()"
+      >
+        <img
+          :src="require(`@/assets/icons/${option.icon}.svg`)"
+          alt="option"
+        />
+      </button>
     </div>
   </VWrapper>
 </template>
@@ -213,25 +256,11 @@ onMounted(() => {
 
   button {
     border: none;
+    padding: 0;
+    filter: $image-filter;
 
-    &.new-folder {
-      @include icon(folder);
-    }
-
-    &.new-file {
-      @include icon(file);
-    }
-
-    &.select {
-      @include icon(checkbox);
-    }
-
-    &.rename {
-      @include icon(pencil);
-    }
-
-    &.trash {
-      @include icon(unknown);
+    &:disabled {
+      opacity: 0.4;
     }
   }
 }

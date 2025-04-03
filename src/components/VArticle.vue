@@ -25,8 +25,12 @@ const converter = new Converter({
 
 const file = computed(() => props.file);
 const loading = ref(true);
-const contents = ref();
+
+const markdown = ref('');
+const html = ref();
 const articleRef = ref();
+
+const isEditMode = ref(false);
 
 function highlightCode() {
   hljs.highlightAll();
@@ -60,13 +64,15 @@ function addMouseEvent() {
   }
 }
 
+watch(markdown, (v) => {
+  html.value = converter.makeHtml(markdown.value);
+})
+
 watch(file, async (v?: File) => {
   if (v) {
     loading.value = true;
-    const markdown = await fetchContents(v.id);
-    contents.value = converter.makeHtml(markdown);
+    markdown.value = await fetchContents(v.id);
     loading.value = false;
-
     setTimeout(highlightCode, 500);
     setTimeout(addMouseEvent, 1000);
   }
@@ -84,15 +90,24 @@ watch(file, async (v?: File) => {
       :style="{ height: `${(1 / zoom.scale) * 100}%` }"
     >
       <header>
-        <div>
+        <div class="title">
           <span>{{ file.name }}</span>
-          <button class="close" @click="emits('close')"/>
+          <div class="buttons">
+            <!-- <button class="update" @click="isEditMode = !isEditMode">
+              <img :src="require('@/assets/icons/pencil.svg')" alt="">
+            </button> -->
+            <button class="close" @click="emits('close')"/>
+          </div>
         </div>
       </header>
-      <article
-        v-html="contents"
-        ref="articleRef"
-      />
+      <section class="contents" :class="{ editing : isEditMode }">
+        <textarea v-if="isEditMode" v-model="markdown"></textarea>
+        <span></span>
+        <article
+          v-html="html"
+          ref="articleRef"
+        />
+      </section>
     </div>
   </main>
 </template>
@@ -101,6 +116,7 @@ watch(file, async (v?: File) => {
 #article {
   @extend .shadow;
   transform-origin: center;
+  z-index: 10;
 
   .loading {
     @include screen-for-waiting(search);
@@ -118,23 +134,22 @@ watch(file, async (v?: File) => {
     background-color: #ffffff;
     width: 100%;
     max-width: 603px;
+    display: grid;
+    grid-template-rows: 40px 1fr;
 
     * {
       font-family: 'Noto Sans KR';
     }
 
     header {
-      position: absolute;
       display: flex;
       align-items: center;
       justify-content: space-between;
       width: 100%;
-      padding-right: 6px;
       max-width: inherit;
       height: 40px;
-      z-index: 10;
 
-      div {
+      .title {
         display: grid;
         grid-template-columns: 1fr auto;
         background-color: #ffffff;
@@ -160,6 +175,39 @@ watch(file, async (v?: File) => {
           &:hover {
             transform: scale(1.3);
           }
+        }
+      }
+    }
+
+    .contents {
+      height: calc(100vh - 40px);
+      max-width: inherit;
+      display: grid;
+
+      &.editing {
+        grid-template-rows: 1fr 21px 1fr;
+
+        span {
+          display: block;
+          margin: 10px;
+          height: 1px;
+          background-color: $text-color;
+        }
+
+        textarea {
+          @extend .scroll;
+          
+          padding: 20px;
+          resize: none;
+          font-size: 16px;
+          color: $base-color;
+          outline: none;
+          border: none;
+          line-height: 1.8;
+        }
+
+        article {
+          padding: 20px !important;
         }
       }
     }

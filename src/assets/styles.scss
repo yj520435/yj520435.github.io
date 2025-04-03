@@ -84,12 +84,17 @@ article {
 
   color: $base-color;
   overflow-y: scroll;
+  overflow-wrap: break-word;
   padding: 20px 20px 40px 20px;
   height: 100%;
 
   * {
     font-size: 16px;
     line-height: 1.8;
+
+    &:first-child {
+      margin-top: 0;
+    }
 
     &:last-child {
       margin-bottom: 0;

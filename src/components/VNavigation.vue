@@ -164,6 +164,39 @@ nav {
         @include icon(minimize);
       }
     }
+
+    .bubble {
+      background-color: #000000;
+      opacity: 0.4;
+      width: 160px;
+      color: $text-color;
+      padding: 10px;
+      position: absolute;
+      top: 30px;
+      border-radius: 10px;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      span {
+        display: flex;
+        align-items: center;
+
+        &:first-child {
+          font-family: 'galmuri11';
+          font-size: 12px;
+          font-weight: bold;
+        }
+
+        strong {
+          font-family: 'galmuri7';
+          letter-spacing: 1px;
+          font-size: 12px;
+          font-weight: normal;
+        }
+      }
+    }
   }
 }
 
