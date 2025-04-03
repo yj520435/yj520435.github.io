@@ -40,7 +40,7 @@ const { name, birth, whoAmI, univ, certs } = profile
 <style lang="scss" scoped>
 #profile {
   .view {
-    @include base-view;
+    @extend .base-view;
     text-align: center;
 
     p {

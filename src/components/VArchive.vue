@@ -195,7 +195,7 @@ onMounted(() => {
   }
 
   .list {
-    @include base-view;
+    @extend .base-view;
     
     :deep(.item):hover {
       cursor: pointer;
@@ -205,7 +205,7 @@ onMounted(() => {
 }
 
 .options {
-  @include flex-center;
+  @extend .flex-center;
   border: 1px solid $text-color;
   border-top: none;
   padding: 10px 15px;

@@ -22,14 +22,14 @@ button {
 }
 
 #root {
-  @include scroll;
+  @extend .scroll;
   width: 100%;
   margin: 0 auto;
   padding: 20px 10px;
   height: 100vh;
 
   #container {
-    @include base-view;
+    @extend .base-view;
     width: 100%;
     max-width: 600px;
     margin: 0 auto;
@@ -77,10 +77,10 @@ div.test {
   display: none;
 }
 
-// Article Element Style
+// Article Style
 
 article {
-  @include scroll;
+  @extend .scroll;
 
   color: $base-color;
   overflow-y: scroll;
@@ -96,22 +96,26 @@ article {
     }
   }
 
-  @mixin header($size) {
+  > * {
     margin: 40px 0;
-    font-weight: 900;
-    font-size: #{$size};
+  }
+
+  div {
+    * {
+      margin: 0 !important;
+    }
   }
 
   h1 {
-    @include header(30px);
+    @include article-header(30px);
   }
 
   h2 {
-    @include header(24px);
+    @include article-header(24px);
   }
 
   h3 {
-    @include header(18px);
+    @include article-header(18px);
   }
 
   sub {
@@ -134,17 +138,11 @@ article {
   }
 
   ol {
-    margin: 40px 0;
-    padding: 0 0 0 20px;
+    padding: 0 0 0 25px;
   }
 
   ul {
-    margin: 40px 0;
-    padding: 0 0 0 20px;
-  }
-
-  p {
-    margin: 40px 0;
+    padding: 0 0 0 25px;
   }
 
   a {
@@ -196,7 +194,6 @@ article {
   blockquote {
     border-left: 6px solid $base-color;
     padding: 10px;
-    margin: 40px 0;
 
     p {
       &:first-child {
@@ -210,7 +207,6 @@ article {
   }
 
   table {
-    margin: 40px 0;
     width: 100%;
     border-collapse: collapse;
 

@@ -53,7 +53,7 @@ function loadCompany(company: Company) {
 
 <style lang="scss" scoped>
 .view {
-  @include base-view;
+  @extend .base-view;
 
   :deep(.item) {
     width: 100%;

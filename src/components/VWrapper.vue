@@ -20,7 +20,7 @@ const { id, title } = toRefs(props);
 
 <style lang="scss" scoped>
 .title {
-  @include label;
+  @extend .label;
   position: relative;
   padding: 0 2px 0 4px;
   top: 8px;

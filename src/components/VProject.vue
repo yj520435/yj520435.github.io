@@ -62,11 +62,11 @@ function next() {
 
 <style lang="scss" scoped>
 .view {
-  @include base-view;
+  @extend .base-view;
 
   .image {
-    @include flex-center;
-    @include bg-image-center;
+    @extend .flex-center;
+    @extend .bg-image-center;
     width: 100%;
     transition: 500ms;
     background-color: #00000030;
@@ -84,7 +84,7 @@ function next() {
 }
 
 .paging {
-  @include label;
+  @extend .label;
   position: absolute;
   display: inline-flex;
   align-items: center;
@@ -92,7 +92,7 @@ function next() {
   transform: translateY(-9px);
 
   button {
-    @include bg-image-center;
+    @extend .bg-image-center;
     @include icon(arrow-right-normal);
     background-size: auto !important;
     padding: 0;

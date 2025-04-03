@@ -99,7 +99,7 @@ watch(file, async (v?: File) => {
 
 <style lang="scss" scoped>
 #article {
-  @include shadow;
+  @extend .shadow;
   transform-origin: center;
 
   .loading {
@@ -147,7 +147,7 @@ watch(file, async (v?: File) => {
         }
 
         button {
-          @include bg-image-center;
+          @extend .bg-image-center;
           border: none;
           background-size: contain;
           margin: 2px;

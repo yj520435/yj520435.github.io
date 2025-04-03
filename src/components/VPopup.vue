@@ -37,7 +37,7 @@ function submit() {
 
 <style lang="scss" scoped>
 #popup {
-  @include shadow;
+  @extend .shadow;
 
   * {
     font-family: 'Galmuri9';
@@ -50,7 +50,7 @@ function submit() {
     background-color: $base-color;
 
     .inner {
-      @include flex-center;
+      @extend .flex-center;
       width: calc(100% - 10px);
       height: calc(100% - 10px);
       border: 1px solid $text-color;
