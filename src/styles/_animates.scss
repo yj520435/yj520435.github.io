@@ -41,3 +41,34 @@
     transform: rotate(360deg);
   }
 }
+
+@keyframes slide {
+  0% {
+    bottom: 0;
+    opacity: 0;
+  }
+
+  20%,
+  40%,
+  80% {
+    bottom: 40px;
+    opacity: 1;
+  }
+
+  100% {
+    bottom: 40px;
+    opacity: 0;
+  }
+}
+
+@keyframes contextmenu {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+
+  to {
+    opacity: 0.6;
+    transform: translateX(0);
+  }
+}

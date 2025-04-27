@@ -6,7 +6,10 @@ const props = defineProps<{
   text?: string
   click?: Function
 }>();
-const emits = defineEmits(['click']);
+
+const emits = defineEmits<{
+  click: []
+}>();
 </script>
 
 <template>

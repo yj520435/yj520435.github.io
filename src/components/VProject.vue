@@ -50,7 +50,19 @@ function next() {
       </VItem>
       <VItem icon="calendar" :text="`${project.from} - ${project.to}`"/>
       <VItem icon="terminal" :text="project.keywords.join(' ・ ')" />
-      <VItem icon="annotation" :text="project.comment" />
+      <VItem icon="annotation">
+        <template #text>
+          <span>{{ project.comment }}</span>
+        </template>
+        <template #subitem>
+          <div class="details">
+            <span
+              v-for="(detail, i) of project.details"
+              :key="i"
+            >{{ detail }}</span>
+          </div>
+        </template>
+      </VItem>
     </div>
     <div class="paging">
       <button @click="prev" :disabled="isFirstProject" />
@@ -80,6 +92,17 @@ function next() {
   :deep(a) {
     color: $text-color;
     text-decoration: none;
+  }
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  span {
+    opacity: 0.6;
+    margin-left: 27px;
   }
 }
 

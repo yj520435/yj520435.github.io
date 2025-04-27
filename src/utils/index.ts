@@ -1,4 +1,5 @@
 import { Project } from '@/types';
+import dayjs from 'dayjs';
 
 export function sortAlphabetically(pa: string, pb: string) {
   const a = pa.toLowerCase();
@@ -29,4 +30,8 @@ export function getCookie(key: string) {
 
 export function transferSnakeToCamel(str: string) {
   return str.replace(/(_\w)/g, (k) => k[1].toUpperCase());
+}
+
+export function getFormattedDate(date: any) {
+  return dayjs(date).format('YYYY-MM-DD HH:mm:ss');
 }

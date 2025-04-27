@@ -1,21 +1,33 @@
 <script setup lang="ts">
-import { File } from '@/types';
+import { File, PopupOption, ToastOption } from '@/types';
 import hljs from 'highlight.js';
 import { Converter } from 'showdown';
-import { ref, defineProps, defineEmits, watch, computed } from 'vue';
+import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode } from 'vue';
 import 'highlight.js/styles/github.css'
-import { useZoomStore } from '@/stores/zoomStore';
 import { useArchive } from '@/composables/useArchive';
+import { useAuthStore } from '@/stores/authStore';
+import { AxiosError, AxiosResponse } from 'axios';
+import VItem from './VItem.vue';
+import { getFormattedDate } from '@/utils';
+import { usePopup } from '@/composables/usePopup';
+import { useToast } from '@/composables/useToast';
 
 const props = defineProps<{
   file?: File
 }>();
-const emits = defineEmits(['close']);
 
-const zoom = useZoomStore();
+const emits = defineEmits<{
+  close: [],
+  load: [file: File]
+}>();
+
+const authStore = useAuthStore();
 
 const {
-  fetchContents
+  fetchContents,
+  updateContents,
+  trashFiles,
+  updateFile,
 } = useArchive();
 
 const converter = new Converter({
@@ -24,20 +36,25 @@ const converter = new Converter({
 });
 
 const file = computed(() => props.file);
-const loading = ref(true);
+const fileCopy: Ref<File> = ref({} as File);
 
+const title = ref('');
 const markdown = ref('');
-const html = ref();
-const articleRef = ref();
+const html = computed(() => converter.makeHtml(title.value + markdown.value));
 
+const loading = ref(false);
+const updating = ref(false);
 const isEditMode = ref(false);
+
+const editorRef = ref();
+const viewerRef = ref();
 
 function highlightCode() {
   hljs.highlightAll();
 }
 
 function addMouseEvent() {
-  const elements = articleRef.value.querySelectorAll('pre code');
+  const elements = viewerRef.value.querySelectorAll('pre code');
   
   for (const el of elements) {
     let trigger = false;
@@ -64,49 +81,211 @@ function addMouseEvent() {
   }
 }
 
-watch(markdown, (v) => {
-  html.value = converter.makeHtml(markdown.value);
+function scrollToEnd(element?: HTMLElement) {
+  if (!element) return;
+
+  const scrollHeight = element.scrollHeight;
+  element.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+}
+
+watch(file, async (v?: File, v0?: File) => {
+  if (v) {
+    fileCopy.value = { ...v };
+
+    if (!v0 || v.id !== v0.id) {
+      loading.value = true;
+      markdown.value = await fetchContents(v.id);
+      loading.value = false;
+
+      setTimeout(highlightCode, 500);
+      setTimeout(addMouseEvent, 1000);
+    }
+
+    title.value = `<header><h1>${v.name}</h1></header>`
+  }
+}, { deep: true });
+
+watch(markdown, () => {
+  if (isEditMode.value)
+    scrollToEnd(viewerRef.value as HTMLElement);
+}, { deep: true });
+
+watch(isEditMode, (v) => {
+  if (v) {
+    setTimeout(() => {
+      scrollToEnd(viewerRef.value);
+      scrollToEnd(editorRef.value);
+    }, 300);
+  }
 })
 
-watch(file, async (v?: File) => {
-  if (v) {
-    loading.value = true;
-    markdown.value = await fetchContents(v.id);
-    loading.value = false;
-    setTimeout(highlightCode, 500);
-    setTimeout(addMouseEvent, 1000);
+const popup = usePopup('article');
+const toast = useToast('article');
+
+function trash() {
+  popup.show({
+    type: 'confirm',
+    icon: 'trash',
+    message: '삭제할까요?',
+    submit: {
+      type: 'warning',
+      text: '삭제',
+      callback: async () => {
+        if (!file.value) return;
+        await trashFiles([file.value.id]);
+      }
+    }
+  })
+}
+
+function info() {
+  if (!file.value) return;
+
+  const fileNameInput = h('input', {
+    type: 'text',
+    value: file.value.name,
+    placeholder: '파일명',
+    disabled: !authStore.isAuthenticated
+  });
+
+  // const sharedIcon = (value: boolean) => file.value!.shared === value ? 'checkbox' : 'square';
+  // const sharedButton = h('div', { class: 'shared' }, [
+  //   h(VItem, { icon: sharedIcon(true), text: '공개' }),
+  //   h(VItem, { icon: sharedIcon(false), text: '비공개' }),
+  // ]);
+
+  const createdDate = h('span', getFormattedDate(file.value.createdTime));
+  const modifiedDate = h('span', getFormattedDate(file.value.modifiedTime));
+
+  const infos = [
+    {
+      id: 'title',
+      name: '제목',
+      value: fileNameInput
+    },
+    {
+      id: 'created',
+      name: '생성일',
+      value: createdDate
+    },
+    {
+      id: 'modified',
+      name: '수정일',
+      value: modifiedDate
+    },
+  ]
+
+  const slot = h('ul', { id: 'file-info' }, Array.from(infos).map(
+    (v) => h('li', [h('span', v.name), v.value])
+  ));
+
+  const popupOption: PopupOption = authStore.isAuthenticated ? {
+    type: 'confirm',
+    icon: 'info',
+    submit: {
+      type: 'default',
+      text: '확인',
+      callback: async () => await rename(fileNameInput)
+    }
+  } : {
+    type: 'alert',
+    icon: 'info'
   }
-});
+
+  popup.show(popupOption, slot);
+}
+
+async function rename(component: VNode) {
+  if (!file.value || !component.el) return;
+  const name = component.el.value;
+  
+  popup.hide();
+  updating.value = true;
+
+  const response: AxiosResponse | undefined = await updateFile(file.value.id, { name });
+  if (response && response.status === 200)
+    emits('load', response.data);
+
+  updating.value = false;
+}
+
+async function save(event: KeyboardEvent) {
+  event.preventDefault();
+
+  if (!file.value) return;
+  
+  updating.value = true;
+  const response = await updateContents(file.value.id, markdown.value);
+
+  if (!response) return;
+
+  const toastOption: ToastOption = (response.status === 200) ? {
+    icon: 'check',
+    text: '저장완료',
+    class: 'success'
+  } : {
+    icon: 'close',
+    text: (response as AxiosError).message,
+    class: 'fail'
+  }
+  toast.show(toastOption);
+  
+  updating.value = false;
+}
+
+function edit() {
+  isEditMode.value = !isEditMode.value;
+}
+
+function close() {
+  emits('close');
+  isEditMode.value = false;
+  title.value = '';
+  markdown.value = '';
+}
 </script>
 
 <template>
-  <main id="article" v-if="file" :style="zoom.style">
+  <main id="article" v-if="file">
     <div v-if="loading" class="loading">
       <img :src="require('@/assets/icons/search.svg')" alt="loading">
     </div>
+    <div v-if="updating" class="updating">
+      <img :src="require('@/assets/icons/load.svg')" alt="updating">
+    </div>
     <div
-      v-else
+      v-if="html"
       class="article"
-      :style="{ height: `${(1 / zoom.scale) * 100}%` }"
     >
       <header>
-        <div class="title">
-          <span>{{ file.name }}</span>
-          <div class="buttons">
-            <!-- <button class="update" @click="isEditMode = !isEditMode">
-              <img :src="require('@/assets/icons/pencil.svg')" alt="">
-            </button> -->
-            <button class="close" @click="emits('close')"/>
-          </div>
+        <div class="buttons">
+          <VItem
+            v-if="authStore.isAuthenticated"
+            icon="trash"
+            @click="trash"
+          />
+          <VItem
+            v-if="authStore.isAuthenticated"
+            :icon="isEditMode ? 'book' : 'pencil'"
+            @click="edit"
+          />
+          <VItem icon="info" @click="info" />
+          <VItem icon="close" @click="close" />
         </div>
       </header>
       <section class="contents" :class="{ editing : isEditMode }">
-        <textarea v-if="isEditMode" v-model="markdown"></textarea>
-        <span></span>
         <article
+          id="viewer"
           v-html="html"
-          ref="articleRef"
+          ref="viewerRef"
         />
+        <span v-if="isEditMode" />
+        <textarea
+          v-if="isEditMode"
+          v-model="markdown"
+          @keydown.ctrl.s="save"
+          ref="editorRef"
+        ></textarea>
       </section>
     </div>
   </main>
@@ -115,17 +294,30 @@ watch(file, async (v?: File) => {
 <style lang="scss" scoped>
 #article {
   @extend .shadow;
+
   transform-origin: center;
   z-index: 10;
 
-  .loading {
-    @include screen-for-waiting(search);
+  .loading,
+  .updating {
+    position: absolute;
+    background-color: #00000070;
+    z-index: 12;
+    width: 100%;
     // transform-origin: top;
 
     img {
-      width: 36px;
-      height: 36px;
+      width: 36px !important;
+      height: 36px !important;
     }
+  }
+
+  .loading {
+    @include screen-for-waiting(search);
+  }
+
+  .updating {
+    @include screen-for-waiting(rotate);
   }
 
   .article {
@@ -139,41 +331,34 @@ watch(file, async (v?: File) => {
 
     * {
       font-family: 'Noto Sans KR';
+      outline: none;
     }
 
     header {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: right;
       width: 100%;
       max-width: inherit;
       height: 40px;
+      background-color: white;
+      z-index: 11;
+      padding: 10px 20px;
 
-      .title {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        background-color: #ffffff;
-        width: 100%;
-        padding: 10px 20px;
+      .buttons {
+        display: flex;
+        gap: 20px;
 
-        span {
-          font-weight: 600;
-          color: #aaaaaa;
-        }
-
-        button {
-          @extend .bg-image-center;
-          border: none;
-          background-size: contain;
-          margin: 2px;
-
-          &.close {
-            @include icon(close);
-            filter: none;
-          }
+        :deep(.item) {
+          gap: 0;
+          cursor: pointer;
 
           &:hover {
             transform: scale(1.3);
+          }
+
+          img {
+            filter: none;
           }
         }
       }
@@ -185,7 +370,7 @@ watch(file, async (v?: File) => {
       display: grid;
 
       &.editing {
-        grid-template-rows: 1fr 21px 1fr;
+        grid-template-rows: 2fr 21px 1fr;
 
         span {
           display: block;
@@ -196,7 +381,6 @@ watch(file, async (v?: File) => {
 
         textarea {
           @extend .scroll;
-          
           padding: 20px;
           resize: none;
           font-size: 16px;
@@ -205,12 +389,63 @@ watch(file, async (v?: File) => {
           border: none;
           line-height: 1.8;
         }
+      }
+    }
+  }
+}
 
-        article {
-          padding: 20px !important;
+:deep(#popup) {
+  #file-info {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      display: inline-grid;
+      grid-template-columns: 60px auto;
+      width: 100%;
+      border-bottom: 1px solid #aaaaaa90;
+      padding: 6px 2px;
+
+      input[type='text'] {
+        width: inherit;
+        background-color: transparent;
+        outline: none;
+        border: none;
+        color: $text-color;
+        padding: 0;
+      }
+
+      .checkbox {
+        width: inehrit;
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+
+        label {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+
+          input[type='checkbox'] {
+            display: none;
+          }
+
+          span {
+            @include icon(checkbox);
+            display: block;
+          }
         }
       }
     }
+  }
+
+  input {
+    background-color: transparent;
+    outline: none;
+    border: none;
+    border-bottom: $base-border;
+    color: $text-color;
+    padding: 3px;
   }
 }
 </style>

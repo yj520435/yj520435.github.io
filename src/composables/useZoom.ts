@@ -1,7 +1,6 @@
-import { defineStore } from 'pinia';
 import { computed, onUnmounted, Ref, ref, watch } from 'vue';
 
-export const useZoomStore = defineStore('zoom', () => {
+export function useZoom() {
   const isActive: Ref<boolean> = ref(false);
 
   const scale: Ref<number> = ref(1);
@@ -28,7 +27,7 @@ export const useZoomStore = defineStore('zoom', () => {
 
   watch(isActive, (v) => (v ? addResizeEvent() : removeResizeEvent()));
 
-  onUnmounted(() => removeResizeEvent());
+  // onUnmounted(() => removeResizeEvent());
 
   return { isActive, scale, style, toggle };
-});
+}

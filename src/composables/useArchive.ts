@@ -1,76 +1,24 @@
-import { API_KEY, API_SCRIPT_URL, API_URL } from '@/constants';
-import { Account, MimeType } from '@/types';
-import axios from 'axios';
-import { computed, ref, Ref } from 'vue';
+import { API_KEY, API_SCRIPT_URL } from '@/constants';
+import { $drive, $upload } from '@/services';
+import { MimeType } from '@/types';
+import axios, { AxiosError, AxiosResponse } from 'axios';
 
 export function useArchive() {
-  const account: Ref<Account> = ref(<Account>{});
-
-  const axiosHeader = computed(() => {
-    const accessToken = account.value.accessToken;
-    return accessToken ? { Authorization: `Bearer ${accessToken}` } : {};
-  });
-
-  function init(params: Account) {
-    account.value = params;
-  }
-
-  async function trashFiles(ids: string[]) {
-    for (const id of ids) {
-      try {
-        const response = await axios({
-          url: API_URL.concat('/', id),
-          method: 'PATCH',
-
-          data: {
-            trashed: true,
-          },
-          headers: axiosHeader.value,
-        });
-        console.log(response);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-
-  async function createFile(mimeType: MimeType, name: string, parents: string[]) {
-    const isFolder = mimeType === 'application/vnd.google-apps.folder';
-
-    const fileMetadata = {
-      name,
-      parents,
-      mimeType,
-    };
-
+  async function fetchFile(id: string) {
     try {
-      const response = await axios({
-        url: API_URL,
-        method: 'POST',
-        data: fileMetadata,
-        headers: axiosHeader.value,
-      });
-      return response;
-    } catch (e) {
-      console.error(e);
-    }
-  }
-
-  async function fetchFiles(id: string) {
-    try {
-      const response = await axios({
-        url: API_URL,
+      const response = await $drive.get('/', {
         params: {
-          q: `"${id}"+in+parents`,
+          q: `"${id}"+in+parents and trashed = false`,
+          fields: 'files(id, name, kind, shared, mimeType, createdTime, modifiedTime)',
           key: API_KEY,
         },
         paramsSerializer: (params) =>
           new URLSearchParams(params).toString().replaceAll('%2B', '+'),
-        timeout: 2000,
       });
       return response.data.files;
-    } catch (error) {
-      const response = await onScript({
+    } catch (e) {
+      console.error(e);
+      const response = await tryOnScript({
         dirId: id,
         command: 'list',
       });
@@ -80,27 +28,27 @@ export function useArchive() {
 
   async function fetchContents(id: string) {
     try {
-      const response = await axios({
-        url: API_URL.concat('/', id),
+      const response = await $drive.get(`/${id}`, {
         params: {
-          key: API_KEY,
           alt: 'media',
+          key: API_KEY,
         },
-        timeout: 2000,
       });
       return response.data;
-    } catch (error) {
-      const response = await onScript({
+    } catch (e) {
+      console.error(e);
+      const response = await tryOnScript({
         fileId: id,
         command: 'select',
         mimeType: 'text/x-markdown',
       });
+      return response;
     }
   }
 
-  async function onScript(params: any) {
+  async function tryOnScript(params: any) {
     try {
-      const response = await axios({
+      const response: AxiosResponse = await axios({
         url: API_SCRIPT_URL,
         params,
       });
@@ -110,11 +58,66 @@ export function useArchive() {
     }
   }
 
+  async function createFile(mimeType: MimeType, parents: string[]) {
+    const isFolder = mimeType === 'application/vnd.google-apps.folder';
+    const fileMetadata = {
+      name: `New ${isFolder ? 'Folder' : 'File'}`,
+      parents,
+      mimeType,
+    };
+
+    try {
+      const response = await $drive.post('', fileMetadata);
+      return response;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function updateFile(id: string, data: any) {
+    try {
+      const response = await $drive.patch(`/${id}`, data);
+      console.log('>> RESPONSE', response);
+      return response;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function updateContents(id: string, data: string) {
+    try {
+      const response = await $upload.patch(`/${id}`, data);
+      console.log(response);
+      return response;
+    } catch (e) {
+      console.error(e);
+
+      let status = 404;
+      if (axios.isAxiosError(e)) {
+        status = e.status ?? 404;
+      }
+
+      return new AxiosError(`Error [${status}]`);
+    }
+  }
+
+  async function trashFiles(ids: string[]) {
+    for (const id of ids) {
+      try {
+        const response = await $drive.patch(`/${id}`, { trashed: true });
+        console.log(response);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
   return {
-    init,
     createFile,
-    fetchFiles,
+    fetchFile,
     fetchContents,
     trashFiles,
+    updateContents,
+    updateFile,
   };
 }

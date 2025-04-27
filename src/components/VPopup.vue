@@ -1,34 +1,41 @@
 <script setup lang="ts">
-import { usePopupStore } from '@/stores/popupStore';
-import { ref, computed } from 'vue';
+import { PopupOption } from '@/types';
+import { defineEmits, computed, defineProps } from 'vue';
 
-const popupStore = usePopupStore();
-const options = computed(() => popupStore.options);
+const props = defineProps<{
+  option: PopupOption
+}>();
 
-const model = ref();
+const emits = defineEmits<{
+  close: []
+}>();
 
-function submit() {
-  const callback = options.value.callback;
-  if (!callback)
-    return;
-  
-  callback(model.value);
-  model.value = undefined;
-}
+const option = computed(() => props.option);
 </script>
 
 <template>
-  <main v-if="popupStore.isShow" id="popup">
+  <main id="popup">
     <div class="outer">
       <div class="inner">
-        <img :src="require(`@/assets/icons/${options.icon}.svg`)" alt="" />
+        <img :src="require(`@/assets/icons/${option.icon}.svg`)" alt="popup-icon">
         <div class="message">
-          <span v-if="options.type !== 'prompt'">{{ options.message }}</span>
-          <input v-else v-model="model" placeholder="Untitled" autofocus />
+          <span v-if="option.message" v-html="option.message"></span>
+          <slot v-else></slot>
         </div>
         <div class="buttons">
-          <button @click="popupStore.hide" class="cancel">취소</button>
-          <button @click="submit" class="submit">확인</button>
+          <button
+            class="default"
+            @click="emits('close');"
+          >
+            {{ option.type === 'alert' ? '확인' : '취소' }}
+          </button>
+          <button
+            v-if="option.submit"
+            :class="option.submit.type"
+            @click="option.submit.callback()"
+          >
+            {{ option.submit.text }}
+          </button>
         </div>
       </div>
     </div>
@@ -38,6 +45,8 @@ function submit() {
 <style lang="scss" scoped>
 #popup {
   @extend .shadow;
+  z-index: 20;
+  background-color: #00000070;
 
   * {
     font-family: 'Galmuri9';
@@ -46,7 +55,6 @@ function submit() {
 
   .outer {
     width: 300px;
-    height: 240px;
     background-color: $base-color;
 
     .inner {
@@ -67,7 +75,7 @@ function submit() {
       }
 
       .message {
-        margin-bottom: 20px;
+        margin-bottom: 10px;
 
         input {
           background-color: transparent;
@@ -89,9 +97,13 @@ function submit() {
           border: none;
           border: $base-border;
           background-color: #dddddd30;
-
-          &.submit {
+          
+          &.request {
             background-color: #32cd3230;
+          }
+
+          &.warning {
+            background-color: #b2222270;
           }
         }
       }

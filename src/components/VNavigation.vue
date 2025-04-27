@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { CLIENT_ID, COOKIE_KEYS as cookieKeys } from '@/constants';
+import { CLIENT_ID } from '@/constants';
 import { useAuthStore } from '@/stores/authStore';
-import { useZoomStore } from '@/stores/zoomStore';
 import { Account } from '@/types';
-import { getCookie } from '@/utils';
+import { getFormattedDate } from '@/utils';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { computed, onMounted, Ref, ref, watch } from 'vue';
-
-const zoomStore = useZoomStore();
+import { onMounted, ref } from 'vue';
+import VItem from './VItem.vue';
 
 const authStore = useAuthStore();
-const account = computed(() => authStore.account);
-const isAuthenticated: Ref<boolean> = ref(false);
+const expiresIn = ref('');
 
 let client: any = null;
 
@@ -38,15 +35,22 @@ function handleTokenResponse(response: any) {
     },
   })
     .then((axiosResponse) => {
-      const { displayName: userName, emailAddress: userEmail } = axiosResponse.data.user;
+      const {
+        displayName: userName,
+        emailAddress: userEmail,
+        photoLink: userPhoto
+      } = axiosResponse.data.user;
+
       const account: Account = {
         accessToken: access_token,
         expiryDate: dayjs().add(expires_in, 'second').toDate(),
         userName,
-        userEmail
+        userEmail,
+        userPhoto
       };
 
       authStore.create(account);
+      expiresIn.value = getFormattedDate(account.expiryDate);
     })
     .catch((axiosError) => {
       console.error(axiosError);
@@ -54,75 +58,46 @@ function handleTokenResponse(response: any) {
 }
 
 function revokeAccessToken() {
-  const accessToken = account.value.accessToken;
-
-  if (!accessToken)
-    return;
-  
-  (window as any).google.accounts.oauth2.revoke(accessToken, authStore.revoke);
+  if (!authStore.account) return;
+  (window as any).google.accounts.oauth2.revoke(authStore.account.accessToken, authStore.$reset);
 }
 
-function checkCookie() {
-  const cookie: any = {}
-  cookieKeys.forEach((key) => cookie[key] = getCookie(key));
-
-  if (Object.keys(cookie).length === cookieKeys.length)
-    authStore.update(cookie);
-}
-
-// Time Ticker
-const expiresIn = ref(0);
-let timeTicker: any = null;
-
-function startTimeTicker() {
-  if (!account.value.expiryDate)
-    return
-
-  const handler = () => {
-    expiresIn.value = dayjs(account.value.expiryDate).diff(Date.now(), 'minute');
-  }
-
-  handler();
-  timeTicker = setInterval(handler, 1000 * 60);
-}
-
-function stopTimeTicker() {
-  clearInterval(timeTicker);
-  timeTicker = null;
-}
-
-watch(account, (v) => {
-  isAuthenticated.value = Object.values(v).every((x) => x !== undefined);
-  isAuthenticated.value ? startTimeTicker() : stopTimeTicker();
-}, {
-  deep: true
-});
+// async function tokeninfo() {
+//   const token = authStore.account.accessToken;
+//   const response = await axios(`https://oauth2.googleapis.com/tokeninfo?access_token=${token}`);
+//   console.log(response);
+// }
 
 onMounted(() => {
   initTokenClient();
-  checkCookie();
 });
 </script>
 
 <template>
-  <nav>
+  <nav >
     <section>
-      <button
-        class="admin"
-        :class="isAuthenticated ? 'log-out' : 'log-in'"
-        :style="zoomStore.style"
-        @click="isAuthenticated ? revokeAccessToken() : requestAccessToken()"
+      <VItem
+        v-if="authStore.isAuthenticated"
+        icon="log-out"
+        @click="revokeAccessToken"
       />
-      <button
-        class="zoom"
-        :class="zoomStore.isActive ? 'minimize' : 'maximize'"
-        :style="zoomStore.style"
-        @click="zoomStore.toggle"
+      <VItem
+        v-else
+        icon="log-in"
+        @click="requestAccessToken"
       />
-      <div v-if="isAuthenticated" class="bubble">
-        <span>{{ authStore.account.userName }}</span>
-        <span><strong>{{ expiresIn }}</strong> 분 후 인증 만료</span>
+      <!-- <VItem
+        :icon="zoom ? 'minimize' : 'maximize'"
+        @click="emits('zoom')"
+      /> -->
+      <div v-if="authStore.isAuthenticated" class="bubble">
+        <img :src="authStore.account?.userPhoto" alt="user">
+        <span>{{ authStore.account?.userName }}</span>
       </div>
+      <!-- <div v-if="authStore.isAuthenticated" class="bubble">
+        <span>{{ authStore.account.userName }}</span>
+        <span><strong>{{ getFormattedDate(authStore.account.expiryDate) }}</strong></span>
+      </div> -->
     </section>
   </nav>
 </template>
@@ -131,78 +106,47 @@ onMounted(() => {
 nav {
   position: relative;
   z-index: 3;
+  float: right;
 
   section {
     position: absolute;
     display: flex;
-    align-items: center;
-    justify-content: right;
-    width: 100%;
     gap: 10px;
+    transform-origin: right;
+    right: 0;
 
-    button {
-      border: none;
-      padding: 0;
-      margin-right: 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-
-      &.admin.log-in {
-        @include icon(log-in);
-      }
-
-      &.admin.log-out {
-        @include icon(log-out);
-      }
-
-      &.zoom.maximize {
-        @include icon(maximize);
-      }
-
-      &.zoom.minimize {
-        @include icon(minimize);
-      }
+    :deep(.item) {
+      cursor: pointer;
     }
 
     .bubble {
-      background-color: #000000;
-      opacity: 0.4;
-      width: 160px;
-      color: $text-color;
-      padding: 10px;
+      @extend .flex-center;
+      gap: 7px;
+      background-color: #00000090;
+      width: max-content;
       position: absolute;
       top: 30px;
-      border-radius: 10px;
-      text-align: left;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
+      padding: 6px 10px;
+      right: 0;
+      transform-origin: right;
+      
+      img {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+      }
+      
       span {
-        display: flex;
+        display: inline-flex;
         align-items: center;
-
-        &:first-child {
-          font-family: 'galmuri11';
-          font-size: 12px;
-          font-weight: bold;
-        }
-
-        strong {
-          font-family: 'galmuri7';
-          letter-spacing: 1px;
-          font-size: 12px;
-          font-weight: normal;
-        }
+        gap: 7px;
+        color: $text-color;
+        opacity: 0.6;
+        font-family: 'galmuri11';
+        font-size: 12px;
+        font-weight: bold;
       }
     }
-  }
-}
-
-@media (width < 650px) {
-  .zoom {
-    display: none !important;
   }
 }
 </style>

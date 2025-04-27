@@ -38,13 +38,14 @@ function loadCompany(company: Company) {
           <span>{{ company.from }} - {{ company.to }}</span>
         </template>
         <template #subitem>
-          <span
-            v-for="(task, i) of company.tasks"
-            :key="i"
-            class="task"
-          >
-            {{ task }}
-          </span>
+          <div class="tasks">
+            <span
+              v-for="(task, i) of company.tasks"
+              :key="i"
+            >
+              {{ task }}
+            </span>
+          </div>
         </template>
       </VItem>
     </div>
@@ -70,9 +71,15 @@ function loadCompany(company: Company) {
     }
   }
 
-  .task {
-    opacity: 0.6;
-    margin-left: 27px;
+  .tasks {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    span {
+      opacity: 0.6;
+      margin-left: 27px;
+    }
   }
 }
 </style>

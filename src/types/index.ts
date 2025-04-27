@@ -22,6 +22,8 @@ export interface File {
   name: string;
   kind: string;
   mimeType: MimeType;
+  createdTime: string;
+  modifiedTime: string;
 }
 
 export interface Account {
@@ -29,6 +31,25 @@ export interface Account {
   expiryDate: Date;
   userName: string;
   userEmail: string;
+  userPhoto: string;
+}
+
+export interface PopupOption {
+  type: 'confirm' | 'prompt' | 'alert';
+  icon: string;
+  props?: any;
+  message?: string;
+  submit?: {
+    type: 'default' | 'request' | 'warning';
+    text: string;
+    callback: Function;
+  };
+}
+
+export interface ToastOption {
+  icon: string;
+  text: string;
+  class?: string;
 }
 
 export type MimeType = 'application/vnd.google-apps.folder' | 'text/x-markdown';

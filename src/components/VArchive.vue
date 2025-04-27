@@ -6,26 +6,18 @@ import { computed, onMounted, Ref, ref, watch, defineEmits } from 'vue';
 import { File, MimeType } from '@/types';
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
-import { usePopupStore } from '@/stores/popupStore';
 import VItem from './VItem.vue';
+import { usePopup } from '@/composables/usePopup';
 
-const emits = defineEmits(['load']);
+const emits = defineEmits<{
+  load: [file: File]
+}>();
 
 const authStore = useAuthStore();
-const popupStore = usePopupStore();
-
-const account = computed(() => authStore.account);
-const isAuthenticated = ref(true);
-
-watch(account, (v) => {
-  init(v);
-  isAuthenticated.value = Object.values(v).every((x) => x !== undefined);
-}, { deep: true });
 
 const {
-  init,
   createFile,
-  fetchFiles,
+  fetchFile,
   trashFiles,
 } = useArchive();
 
@@ -37,53 +29,15 @@ const pathDeep = computed(() => paths.value.length);
 const searching: Ref<boolean> = ref(true);
 const loading: Ref<boolean> = ref(false);
 
-watch(pathDeep, async (v) => {
-  searching.value = true;
-  await reload();
-  searching.value = false;
-});
-
 function load(file: File) {
   if (file.mimeType === FOLDER_MIME_TYPE) paths.value.push(file.id);
   else emits('load', file);
 }
 
-async function trash() {
-  popupStore.show({
-    type: 'confirm',
-    icon: 'close',
-    message: `${selectedFiles.value.length}개의 항목을 삭제할까요?`,
-    callback: async () => {
-      popupStore.hide();
-      loading.value = true;
-      const response = await trashFiles(selectedFiles.value.map((v) => v.id));
-      await reload();
-      loading.value = false;
-      selectedFiles.value = [];
-    }
-  })
-}
-
-async function create(mimeType: MimeType) {
-  popupStore.show({
-    type: 'prompt',
-    icon: 'pencil',
-    callback: async (name: string) => {
-      popupStore.hide();
-      loading.value = true;
-      const parentId = paths.value[pathDeep.value - 1];
-      const response = await createFile(mimeType, name, [parentId]);
-      // Error Handling...
-      await reload();
-      loading.value = false;
-    }
-  });
-}
-
 async function reload() {
   const currentPathId = paths.value[pathDeep.value - 1];
   files.value = [];
-  const fetchedFiles = await fetchFiles(currentPathId);
+  const fetchedFiles = await fetchFile(currentPathId);
   files.value = sort(fetchedFiles);
 }
 
@@ -109,8 +63,41 @@ function sort(data: File[]): File[] {
   return sortedFolders.concat(sortedFiles);
 }
 
+watch(pathDeep, async () => {
+  searching.value = true;
+  await reload();
+  searching.value = false;
+});
+
+const popup = usePopup('root');
+
+const isTrashMode = ref(false);
 const isSelectMode = ref(false);
 const selectedFiles: Ref<File[]> = ref([]);
+
+const archiveRef = ref();
+const showContextMenu = ref(false);
+const contextMenuStyle = ref({ top: '0', left: '0' });
+
+function contextmenu(event: MouseEvent) {
+  if (!authStore.isAuthenticated || !archiveRef.value) return;
+
+  event.preventDefault();
+  contextMenuStyle.value = {
+    top: `${archiveRef.value.offsetTop + 86}px`,
+    left: `${archiveRef.value.offsetWidth - 40}px`
+  }
+  showContextMenu.value = true;
+}
+
+async function create(mimeType: MimeType) {
+  loading.value = true;
+  const parentId = paths.value[pathDeep.value - 1];
+  const reponse = await createFile(mimeType, [parentId]);
+  /* Error Check */
+  await reload();
+  loading.value = false;
+}
 
 function select(file: File) {
   const index = selectedFiles.value.findIndex((v) => v.id === file.id);
@@ -120,6 +107,27 @@ function select(file: File) {
     selectedFiles.value.splice(index, 1);
 }
 
+function trash() {
+  isTrashMode.value = !isTrashMode.value;
+  
+  popup.show({
+    type: 'confirm',
+    icon: 'trash',
+    message: `정말 삭제할까요?`,
+    submit: {
+      type: 'warning',
+      text: '삭제',
+      callback: async () => {
+        loading.value = true;
+        const reponse = await trashFiles(selectedFiles.value.map((v) => v.id));
+        await reload();
+        loading.value = false;
+        selectedFiles.value = [];
+      }
+    }
+  })
+}
+
 function icon(file: File): string {
   if (isSelectMode.value) {
     const isSelected = selectedFiles.value.findIndex((v) => v.id === file.id);
@@ -127,46 +135,14 @@ function icon(file: File): string {
   } else {
     switch (file.mimeType) {
       case 'text/x-markdown':
-      return 'file';
-    case 'application/vnd.google-apps.folder':
-      return 'folder';
-    default:
-      return 'unknown';
+        return 'file';
+      case 'application/vnd.google-apps.folder':
+        return 'folder';
+      default:
+        return 'unknown';
     }
   }
 }
-
-const options = ref([
-  {
-    id: 'create-new-folder',
-    icon: 'folder',
-    disabled: () => isSelectMode.value,
-    action: () => create(FOLDER_MIME_TYPE)
-  },
-  {
-    id: 'create-new-file',
-    icon: 'file',
-    disabled: () => isSelectMode.value,
-    action: () => create('text/x-markdown')
-  },
-  {
-    id: 'select-file',
-    icon: 'checkbox',
-    disabled: () => false,
-    action: () => isSelectMode.value = !isSelectMode.value
-  },
-  {
-    id: 'update-file',
-    icon: 'pencil',
-    disabled: () => selectedFiles.value.length !== 1
-  },
-  {
-    id: 'trash-file',
-    icon: 'unknown',
-    disabled: () => !isSelectMode.value || selectedFiles.value.length === 0,
-    action: () => trash()
-  }
-]);
 
 watch (isSelectMode, (v) => {
   if (!v)
@@ -175,12 +151,16 @@ watch (isSelectMode, (v) => {
 
 onMounted(() => {
   paths.value.push(ROOT_FOLDER_ID);
-})
+
+  // window.addEventListener('click', (e) => {
+  //   showContextMenu.value = false;
+  // })
+});
 </script>
 
 <template>
   <VWrapper id="archive">
-    <div class="view">
+    <div class="view" @contextmenu="contextmenu" ref="archiveRef">
       <div v-if="searching" class="searching">
         <img :src="require(`@/assets/icons/search.svg`)" alt="">
       </div>
@@ -208,19 +188,15 @@ onMounted(() => {
           @click="isSelectMode ? select(file) : load(file)"
         />
       </div>
-    </div>
-    <div v-if="isAuthenticated" class="options">
-      <button
-        v-for="option of options"
-        :key="option.id"
-        @click="option.action"
-        :disabled="option.disabled()"
+      <div
+        v-show="showContextMenu"
+        class="contextmenu"
+        :style="contextMenuStyle"
       >
-        <img
-          :src="require(`@/assets/icons/${option.icon}.svg`)"
-          alt="option"
-        />
-      </button>
+        <VItem icon="folder" @click="create(FOLDER_MIME_TYPE)" />
+        <VItem icon="file" @click="create('text/x-markdown')" />
+        <!-- <VItem :icon="isSelectMode ? '' : trash" @click="trash" /> -->
+      </div>
     </div>
   </VWrapper>
 </template>
@@ -232,12 +208,14 @@ onMounted(() => {
   .searching {
     @include screen-for-waiting(search);
   }
-
+  
   .loading {
     @include screen-for-waiting(rotate);
   }
-
+  
   .list {
+    height: 100%;
+    @extend .scroll;
     @extend .base-view;
     
     :deep(.item):hover {
@@ -245,22 +223,38 @@ onMounted(() => {
       text-decoration: underline;
     }
   }
-}
 
-.options {
-  @extend .flex-center;
-  border: 1px solid $text-color;
-  border-top: none;
-  padding: 10px 15px;
-  gap: 20px;
+  .contextmenu {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    z-index: 11;
+    
+    :deep(.item) {
+      background-color: #00000090;
+      padding: 6px;
+      gap: 0;
+      animation: contextmenu 0.5s forwards;
+      opacity: 0;
+      cursor: pointer;
+      border-radius: 50%;
 
-  button {
-    border: none;
-    padding: 0;
-    filter: $image-filter;
+      &:first-child {
+        animation-delay: 0.2s;
+      }
 
-    &:disabled {
-      opacity: 0.4;
+      &:nth-child(2) {
+        animation-delay: 0.1s;
+      }
+
+      &:hover {
+        background-color: $text-color;
+
+        img {
+          filter: none;
+        }
+      }
     }
   }
 }

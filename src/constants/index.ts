@@ -14,4 +14,10 @@ export { default as skills } from '@/data/skills.json';
 export { default as companies } from '@/data/careers.json';
 export { default as projects } from '@/data/projects.json';
 
-export const COOKIE_KEYS = ['access_token', 'expiry_date', 'user_name', 'user_email'];
+export const COOKIE_KEYS = [
+  'access_token',
+  'expiry_date',
+  'user_name',
+  'user_email',
+  'user_photo',
+];

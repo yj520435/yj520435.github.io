@@ -1,17 +1,24 @@
 import { Account } from '@/types';
 import { getCookie, transferSnakeToCamel } from '@/utils';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { defineStore } from 'pinia';
 import { computed, onMounted, Ref, ref } from 'vue';
 import { COOKIE_KEYS as cookieKeys } from '@/constants';
 
 export const useAuthStore = defineStore('auth', () => {
-  const account: Ref<Account> = ref(<Account>{});
+  const account: Ref<Account | undefined> = ref();
+  const isAuthenticated = computed(() => account.value !== undefined);
 
-  // const isAuthenticated = computed(() =>
-  //   Object.values(account.value).every((v) => v !== undefined)
-  // );
+  onMounted(() => {
+    const cookie: any = {};
+    cookieKeys.forEach((key) => (cookie[key] = getCookie(key)));
+
+    if (Object.values(cookie).every((v) => !!v)) {
+      const object: any = {};
+      cookieKeys.forEach((key) => (object[transferSnakeToCamel(key)] = cookie[key]));
+      account.value = object as Account;
+    }
+  });
 
   function create(params: Account) {
     if (!params.expiryDate) return;
@@ -29,13 +36,14 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function update(cookie: any) {
-    const object: any = {};
-    cookieKeys.forEach((key) => (object[transferSnakeToCamel(key)] = cookie[key]));
-    account.value = object as Account;
+    // const object: any = {};
+    // cookieKeys.forEach((key) => (object[transferSnakeToCamel(key)] = cookie[key]));
+    // account.value = object as Account;
   }
 
-  function revoke() {
-    account.value = <Account>{};
+  function $reset() {
+    account.value = undefined;
+
     cookieKeys.forEach((key) => {
       document.cookie = `${key}=; Path=/; Expires=${new Date(1970).toUTCString()}`;
     });
@@ -45,6 +53,7 @@ export const useAuthStore = defineStore('auth', () => {
     account,
     create,
     update,
-    revoke,
+    $reset,
+    isAuthenticated,
   };
 });
