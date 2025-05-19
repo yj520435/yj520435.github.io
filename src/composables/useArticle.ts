@@ -285,7 +285,8 @@ export function useArticle() {
         .replaceAll(/<em>(.+?)<\/em>/g, '*$1*')
         .replaceAll(/<a href="(.+?)".*>(.+?)<\/a>/g, '[$2]($1)')
         .replaceAll('&gt;', '>')
-        .replaceAll('&lt;', '<');
+        .replaceAll('&lt;', '<')
+        .replaceAll('&amp;', '&');
 
       // if (tagName === 'UL')
       markdown += tagName !== 'UL' ? '\n' : '';
