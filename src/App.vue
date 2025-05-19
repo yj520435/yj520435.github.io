@@ -21,7 +21,7 @@ onMounted(async () => {
 
 <template>
   <main id="root">
-    <VNavigation v-if="!target" />
+    <VNavigation />
     <div id="container">
       <!-- header -->
       <header>

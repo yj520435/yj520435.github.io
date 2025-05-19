@@ -87,7 +87,6 @@ export function useArchive() {
   async function updateContents(id: string, data: string) {
     try {
       const response = await $upload.patch(`/${id}`, data);
-      console.log(response);
       return response;
     } catch (e) {
       console.error(e);
@@ -105,7 +104,6 @@ export function useArchive() {
     for (const id of ids) {
       try {
         const response = await $drive.patch(`/${id}`, { trashed: true });
-        console.log(response);
       } catch (e) {
         console.error(e);
       }

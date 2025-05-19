@@ -1,6 +1,5 @@
 import { Account } from '@/types';
-import { getCookie, transferSnakeToCamel } from '@/utils';
-import dayjs from 'dayjs';
+import { getCookie, getFormattedDate, transferSnakeToCamel } from '@/utils';
 import { defineStore } from 'pinia';
 import { computed, onMounted, Ref, ref } from 'vue';
 import { COOKIE_KEYS as cookieKeys } from '@/constants';
@@ -26,13 +25,13 @@ export const useAuthStore = defineStore('auth', () => {
     account.value = params;
 
     const cookie: any = { ...params };
-    cookie.expiryDate = dayjs(params.expiryDate).format('YYYY-MM-DD HH:mm:ss');
+    cookie.expiryDate = getFormattedDate(params.expiryDate);
 
-    cookieKeys.forEach((key) => {
+    for (const key of cookieKeys) {
       document.cookie = `${key}=${
         cookie[transferSnakeToCamel(key)]
       };expires=${params.expiryDate.toUTCString()}`;
-    });
+    }
   }
 
   function update(cookie: any) {

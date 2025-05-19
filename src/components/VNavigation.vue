@@ -2,16 +2,60 @@
 import { CLIENT_ID } from '@/constants';
 import { useAuthStore } from '@/stores/authStore';
 import { Account } from '@/types';
-import { getFormattedDate } from '@/utils';
 import axios from 'axios';
 import dayjs from 'dayjs';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import VItem from './VItem.vue';
+import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();
-const expiresIn = ref('');
+
+const {
+  account,
+  isAuthenticated
+} = storeToRefs(authStore);
+
+const {
+  create
+} = authStore;
+
 
 let client: any = null;
+
+let timer: any = null;
+const timestamp = ref('59:59');
+
+function startTimer(expiresIn: Date) {
+  if (timer) {
+    stopTimer();
+    timer = null;
+  }
+
+  const timerHandler = () => {
+    const leftTimeSeconds = dayjs(expiresIn).diff(Date.now(), 'second');
+    
+    const min = leftTimeSeconds / 60;
+    const sec = leftTimeSeconds % 60; 
+
+    timestamp.value = `${Math.floor(min)}:${sec < 10 ? '0' + sec : sec }`;
+    if (leftTimeSeconds === 60 * 5)
+      requestAccessToken();
+
+    if (leftTimeSeconds < 0) {
+      stopTimer();
+      timer = null;
+      revokeAccessToken();
+    }
+  }
+  
+  timerHandler();
+  timer = setInterval(timerHandler, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timer);
+  timer = null;
+}
 
 function initTokenClient() {
   client = (window as any).google.accounts.oauth2.initTokenClient({
@@ -49,8 +93,7 @@ function handleTokenResponse(response: any) {
         userPhoto
       };
 
-      authStore.create(account);
-      expiresIn.value = getFormattedDate(account.expiryDate);
+      create(account);
     })
     .catch((axiosError) => {
       console.error(axiosError);
@@ -62,11 +105,9 @@ function revokeAccessToken() {
   (window as any).google.accounts.oauth2.revoke(authStore.account.accessToken, authStore.$reset);
 }
 
-// async function tokeninfo() {
-//   const token = authStore.account.accessToken;
-//   const response = await axios(`https://oauth2.googleapis.com/tokeninfo?access_token=${token}`);
-//   console.log(response);
-// }
+watch(account, (v) => {
+  if (v) startTimer(v.expiryDate);
+});
 
 onMounted(() => {
   initTokenClient();
@@ -76,8 +117,13 @@ onMounted(() => {
 <template>
   <nav >
     <section>
+      <div v-if="account" class="account">
+        <img :src="account.userPhoto" alt="user">
+        <span class="user">{{ account.userName }}</span>
+        <span class="timestamp">{{ timestamp }}</span>
+      </div>
       <VItem
-        v-if="authStore.isAuthenticated"
+        v-if="isAuthenticated"
         icon="log-out"
         @click="revokeAccessToken"
       />
@@ -90,14 +136,6 @@ onMounted(() => {
         :icon="zoom ? 'minimize' : 'maximize'"
         @click="emits('zoom')"
       /> -->
-      <div v-if="authStore.isAuthenticated" class="bubble">
-        <img :src="authStore.account?.userPhoto" alt="user">
-        <span>{{ authStore.account?.userName }}</span>
-      </div>
-      <!-- <div v-if="authStore.isAuthenticated" class="bubble">
-        <span>{{ authStore.account.userName }}</span>
-        <span><strong>{{ getFormattedDate(authStore.account.expiryDate) }}</strong></span>
-      </div> -->
     </section>
   </nav>
 </template>
@@ -114,38 +152,48 @@ nav {
     gap: 10px;
     transform-origin: right;
     right: 0;
+    height: 20px;
+
+    .account {
+      @extend .flex-center;
+      width: max-content;
+      gap: 10px;
+      margin-right: 3px;
+
+      img {
+        width: 20px;
+        border-radius: 50%;
+      }
+
+      span {
+        font-size: 12px;
+        color: $text-color;
+        
+        &.user {
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+          font-family: 'galmuri11';
+          font-weight: bold;
+        }
+
+        &.timestamp {
+          font-family: 'Ubuntu Mono';
+          font-size: 16px;
+          display: inline-grid;
+          background-color: $text-color;
+          color: $base-color;
+          font-weight: bold;
+          padding: 1px 0;
+          border-radius: 5px;
+          width: 51px;
+          text-align: center;
+        }
+      }
+    }
 
     :deep(.item) {
       cursor: pointer;
-    }
-
-    .bubble {
-      @extend .flex-center;
-      gap: 7px;
-      background-color: #00000090;
-      width: max-content;
-      position: absolute;
-      top: 30px;
-      padding: 6px 10px;
-      right: 0;
-      transform-origin: right;
-      
-      img {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-      }
-      
-      span {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        color: $text-color;
-        opacity: 0.6;
-        font-family: 'galmuri11';
-        font-size: 12px;
-        font-weight: bold;
-      }
     }
   }
 }

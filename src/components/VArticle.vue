@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { File, PopupOption, ToastOption } from '@/types';
 import hljs from 'highlight.js';
-import { Converter } from 'showdown';
-import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode } from 'vue';
+import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode, onMounted } from 'vue';
 import 'highlight.js/styles/github.css'
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
@@ -11,6 +10,7 @@ import VItem from './VItem.vue';
 import { getFormattedDate } from '@/utils';
 import { usePopup } from '@/composables/usePopup';
 import { useToast } from '@/composables/useToast';
+import { useArticle } from '@/composables/useArticle';
 
 const props = defineProps<{
   file?: File
@@ -30,54 +30,60 @@ const {
   updateFile,
 } = useArchive();
 
-const converter = new Converter({
-  tables: true,
-  simpleLineBreaks: true,
-});
-
 const file = computed(() => props.file);
 const fileCopy: Ref<File> = ref({} as File);
 
-const title = ref('');
-const markdown = ref('');
-const html = computed(() => converter.makeHtml(title.value + markdown.value));
-
 const loading = ref(false);
 const updating = ref(false);
-const isEditMode = ref(false);
+  
+const handler = useArticle();
 
-const editorRef = ref();
-const viewerRef = ref();
+const htmlRef = ref();
+const markdownRef = ref();
+
+const title = ref('');
+const markdown = ref('');
+const markdownCopy = ref('');
+const opacity = ref(0);
 
 function highlightCode() {
   hljs.highlightAll();
 }
 
 function addMouseEvent() {
-  const elements = viewerRef.value.querySelectorAll('pre code');
-  
-  for (const el of elements) {
+  // Codeblock
+  const codeblocks = htmlRef.value.querySelectorAll('pre');
+
+  for (const codeblock of codeblocks) {
     let trigger = false;
     let pos = { x: 0, left: 0 };
 
-    el.onmousedown = (event: MouseEvent) => {
-      pos = { x: event.clientX, left: el.scrollLeft };
+    codeblock.onmousedown = (event: MouseEvent) => {
+      pos = { x: event.clientX, left: codeblock.scrollLeft };
       trigger = true;
-      el.style.cursor = 'grabbing';
     };
-
-    el.onmousemove = (event: MouseEvent) => {
+    codeblock.onmousemove = (event: MouseEvent) => {
       if (trigger) {
         const dx = event.clientX - pos.x;
-        el.scrollLeft = pos.left - dx;
+        codeblock.scrollLeft = pos.left - dx;
       }
     };
-
-    el.onmouseup = () => {
-      pos.left = el.scrollLeft;
+    codeblock.onmouseup = () => {
+      pos.left = codeblock.scrollLeft;
       trigger = false;
-      el.style.cursor = 'grab';
     };
+    codeblock.onmouseout = () => {
+      trigger = false;
+    }
+  }
+
+  // Link
+  const links = htmlRef.value.querySelectorAll('a');
+
+  for (const link of links) {
+    const href = link.href;
+    if (!href) return;
+    link.onclick = () => open(href, '_blank');
   }
 }
 
@@ -88,34 +94,27 @@ function scrollToEnd(element?: HTMLElement) {
   element.scrollTo({ top: scrollHeight, behavior: 'smooth' });
 }
 
-watch(file, async (v?: File, v0?: File) => {
+watch(file, async (v?: File) => {
   if (v) {
     fileCopy.value = { ...v };
 
-    if (!v0 || v.id !== v0.id) {
-      loading.value = true;
-      markdown.value = await fetchContents(v.id);
-      loading.value = false;
+    loading.value = true;
+    markdown.value = await fetchContents(v.id);
+    markdownCopy.value = markdown.value;
+    (htmlRef.value as HTMLElement).innerHTML = `<header><h1>${v.name}</h1></header>`;
+    handler.convertToHtml(markdownCopy.value);
+    loading.value = false;
+    opacity.value = 1;
 
+    if (!authStore.isAuthenticated)
       setTimeout(highlightCode, 500);
-      setTimeout(addMouseEvent, 1000);
-    }
-
-    title.value = `<header><h1>${v.name}</h1></header>`
+    setTimeout(addMouseEvent, 1000);
   }
 }, { deep: true });
 
-watch(markdown, () => {
-  if (isEditMode.value)
-    scrollToEnd(viewerRef.value as HTMLElement);
-}, { deep: true });
-
-watch(isEditMode, (v) => {
+watch(htmlRef, v => {
   if (v) {
-    setTimeout(() => {
-      scrollToEnd(viewerRef.value);
-      scrollToEnd(editorRef.value);
-    }, 300);
+    handler.init(v);
   }
 })
 
@@ -212,10 +211,11 @@ async function rename(component: VNode) {
 async function save(event: KeyboardEvent) {
   event.preventDefault();
 
-  if (!file.value) return;
+  if (!file.value || !htmlRef.value) return;
   
   updating.value = true;
-  const response = await updateContents(file.value.id, markdown.value);
+  const markdown = mode.value === 'HTML' ? handler.convertToMarkdown(htmlRef.value) : markdownCopy.value;
+  const response = await updateContents(file.value.id, markdown);
 
   if (!response) return;
 
@@ -233,15 +233,27 @@ async function save(event: KeyboardEvent) {
   updating.value = false;
 }
 
-function edit() {
-  isEditMode.value = !isEditMode.value;
+const mode: Ref<'HTML' | 'MARKDOWN'> = ref('HTML');
+
+async function changeMode() {
+  mode.value = (mode.value === 'HTML') ? 'MARKDOWN' : 'HTML';
+
+  if (mode.value === 'HTML') {
+    (htmlRef.value as HTMLElement).innerHTML = `<header><h1>${file.value?.name}</h1></header>`;
+    handler.convertToHtml(markdownCopy.value);
+  }
+
+  if (mode.value === 'MARKDOWN') {
+    markdownCopy.value = handler.convertToMarkdown(htmlRef.value);
+  }
 }
 
 function close() {
   emits('close');
-  isEditMode.value = false;
   title.value = '';
   markdown.value = '';
+  opacity.value = 0;
+  mode.value = 'HTML';
 }
 </script>
 
@@ -253,10 +265,7 @@ function close() {
     <div v-if="updating" class="updating">
       <img :src="require('@/assets/icons/load.svg')" alt="updating">
     </div>
-    <div
-      v-if="html"
-      class="article"
-    >
+    <div class="article" :style="{ opacity }">
       <header>
         <div class="buttons">
           <VItem
@@ -266,26 +275,32 @@ function close() {
           />
           <VItem
             v-if="authStore.isAuthenticated"
-            :icon="isEditMode ? 'book' : 'pencil'"
-            @click="edit"
+            icon="repeat"
+            @click="changeMode"
           />
           <VItem icon="info" @click="info" />
           <VItem icon="close" @click="close" />
         </div>
       </header>
-      <section class="contents" :class="{ editing : isEditMode }">
-        <article
-          id="viewer"
-          v-html="html"
-          ref="viewerRef"
-        />
-        <span v-if="isEditMode" />
+      <section class="contents">
         <textarea
-          v-if="isEditMode"
-          v-model="markdown"
+          v-show="mode === 'MARKDOWN'"
+          v-model="markdownCopy"
           @keydown.ctrl.s="save"
-          ref="editorRef"
+          ref="markdownRef"          
         ></textarea>
+        <article
+          v-show="mode === 'HTML'"
+          :contenteditable="authStore.isAuthenticated"
+          @input="handler.input(undefined, true)"
+          @keydown.enter.exact="handler.enter"
+          @keydown.tab="handler.tab"
+          @keydown.ctrl.v="handler.paste"
+          @keydown.ctrl.s="save"
+          ref="htmlRef"
+        >
+          <p></p>
+        </article>
       </section>
     </div>
   </main>
@@ -369,26 +384,18 @@ function close() {
       max-width: inherit;
       display: grid;
 
-      &.editing {
-        grid-template-rows: 2fr 21px 1fr;
+      textarea {
+        @extend .scroll;
 
-        span {
-          display: block;
-          margin: 10px;
-          height: 1px;
-          background-color: $text-color;
-        }
+        padding: 0 20px 40px 20px;
+        color: $base-color;
 
-        textarea {
-          @extend .scroll;
-          padding: 20px;
-          resize: none;
-          font-size: 16px;
-          color: $base-color;
-          outline: none;
-          border: none;
-          line-height: 1.8;
-        }
+        width: 100%;
+        height: 100%;
+        font-family: 'Noto Sans KR';
+        font-size: 16px;
+        line-height: 1.8;
+        border: none;
       }
     }
   }

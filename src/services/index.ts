@@ -2,7 +2,7 @@ import { getCookie } from '@/utils';
 import axios from 'axios';
 
 function interceptor(config: any) {
-  const accessToken = getCookie('accessToken');
+  const accessToken = getCookie('access_token');
   if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
   return config;
 }

@@ -52,4 +52,4 @@ export interface ToastOption {
   class?: string;
 }
 
-export type MimeType = 'application/vnd.google-apps.folder' | 'text/x-markdown';
+export type MimeType = 'application/vnd.google-apps.folder' | 'text/markdown';

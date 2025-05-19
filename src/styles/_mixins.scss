@@ -22,4 +22,5 @@
 @mixin article-header($size) {
   font-weight: 900;
   font-size: #{$size};
+  margin: 6px 0;
 }

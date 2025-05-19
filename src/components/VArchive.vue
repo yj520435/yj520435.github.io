@@ -76,19 +76,6 @@ const isSelectMode = ref(false);
 const selectedFiles: Ref<File[]> = ref([]);
 
 const archiveRef = ref();
-const showContextMenu = ref(false);
-const contextMenuStyle = ref({ top: '0', left: '0' });
-
-function contextmenu(event: MouseEvent) {
-  if (!authStore.isAuthenticated || !archiveRef.value) return;
-
-  event.preventDefault();
-  contextMenuStyle.value = {
-    top: `${archiveRef.value.offsetTop + 86}px`,
-    left: `${archiveRef.value.offsetWidth - 40}px`
-  }
-  showContextMenu.value = true;
-}
 
 async function create(mimeType: MimeType) {
   loading.value = true;
@@ -133,14 +120,7 @@ function icon(file: File): string {
     const isSelected = selectedFiles.value.findIndex((v) => v.id === file.id);
     return (isSelected !== -1) ? 'checkbox' : 'square';
   } else {
-    switch (file.mimeType) {
-      case 'text/x-markdown':
-        return 'file';
-      case 'application/vnd.google-apps.folder':
-        return 'folder';
-      default:
-        return 'unknown';
-    }
+    return (file.mimeType === 'application/vnd.google-apps.folder') ? 'folder' : 'file';
   }
 }
 
@@ -151,108 +131,98 @@ watch (isSelectMode, (v) => {
 
 onMounted(() => {
   paths.value.push(ROOT_FOLDER_ID);
-
-  // window.addEventListener('click', (e) => {
-  //   showContextMenu.value = false;
-  // })
 });
 </script>
 
 <template>
-  <VWrapper id="archive">
-    <div class="view" @contextmenu="contextmenu" ref="archiveRef">
-      <div v-if="searching" class="searching">
-        <img :src="require(`@/assets/icons/search.svg`)" alt="">
+  <div class="wrapper" :class="{ grid : authStore.isAuthenticated }">
+    <VWrapper id="archive">
+      <div class="view" ref="archiveRef">
+        <div v-if="searching" class="searching">
+          <img :src="require(`@/assets/icons/search.svg`)" alt="">
+        </div>
+        <div v-else-if="loading" class="loading">
+          <img :src="require(`@/assets/icons/load.svg`)" alt="">
+        </div>
+        <div v-else class="list">
+          <VItem
+            v-if="!isRoot"
+            icon="home"
+            text="."
+            @click="paths = [ROOT_FOLDER_ID]"
+          />
+          <VItem
+            v-if="!isRoot"
+            icon="folder"
+            text=".."
+            @click="paths.pop()"
+          />
+          <VItem
+            v-for="file of files"
+            :key="file.id"
+            :icon="icon(file)"
+            :text="file.name"
+            @click="isSelectMode ? select(file) : load(file)"
+          />
+        </div>
       </div>
-      <div v-else-if="loading" class="loading">
-        <img :src="require(`@/assets/icons/load.svg`)" alt="">
+    </VWrapper>
+    <VWrapper v-if="authStore.isAuthenticated" id="admin">
+      <div class="view">
+        <VItem icon="folder" @click="create(FOLDER_MIME_TYPE)" text="새 폴더" />
+        <VItem icon="file" @click="create('text/markdown')" text="새 파일" />
+        <!-- <VItem icon="pencil" @click="onSinglefile = !onSinglefile" text="단건 작업" /> -->
+        <!-- <VItem icon="trash" text="다건 작업" /> -->
       </div>
-      <div v-else class="list">
-        <VItem
-          v-if="!isRoot"
-          icon="home"
-          text="."
-          @click="paths = [ROOT_FOLDER_ID]"
-        />
-        <VItem
-          v-if="!isRoot"
-          icon="folder"
-          text=".."
-          @click="paths.pop()"
-        />
-        <VItem
-          v-for="file of files"
-          :key="file.id"
-          :icon="icon(file)"
-          :text="file.name"
-          @click="isSelectMode ? select(file) : load(file)"
-        />
-      </div>
-      <div
-        v-show="showContextMenu"
-        class="contextmenu"
-        :style="contextMenuStyle"
-      >
-        <VItem icon="folder" @click="create(FOLDER_MIME_TYPE)" />
-        <VItem icon="file" @click="create('text/x-markdown')" />
-        <!-- <VItem :icon="isSelectMode ? '' : trash" @click="trash" /> -->
-      </div>
-    </div>
-  </VWrapper>
+    </VWrapper>
+  </div>
+
 </template>
 
 <style lang="scss" scoped>
-.view {
-  height: 200px;
+.wrapper {
+  display: grid;
+  gap: 24px;
 
-  .searching {
-    @include screen-for-waiting(search);
+  &.grid {
+    grid-template-columns: 1fr 140px;
   }
-  
-  .loading {
-    @include screen-for-waiting(rotate);
-  }
-  
-  .list {
-    height: 100%;
-    @extend .scroll;
-    @extend .base-view;
-    
-    :deep(.item):hover {
-      cursor: pointer;
-      text-decoration: underline;
+
+  #archive {
+    .view {
+      height: 200px;
+
+      .searching {
+        @include screen-for-waiting(search);
+      }
+      
+      .loading {
+        @include screen-for-waiting(rotate);
+      }
+      
+      .list {
+        height: 100%;
+        @extend .scroll;
+        @extend .base-view;
+        
+        :deep(.item):hover {
+          cursor: pointer;
+          text-decoration: underline;
+        }
+      }
     }
   }
 
-  .contextmenu {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    z-index: 11;
-    
-    :deep(.item) {
-      background-color: #00000090;
-      padding: 6px;
-      gap: 0;
-      animation: contextmenu 0.5s forwards;
-      opacity: 0;
-      cursor: pointer;
-      border-radius: 50%;
+  #admin {
+    .view {
+      height: 200px;
+      @extend .base-view;
 
-      &:first-child {
-        animation-delay: 0.2s;
-      }
+      :deep(.item) {
+        cursor: pointer;
 
-      &:nth-child(2) {
-        animation-delay: 0.1s;
-      }
-
-      &:hover {
-        background-color: $text-color;
-
-        img {
-          filter: none;
+        &:hover {
+          text-decoration: underline;
         }
       }
     }
