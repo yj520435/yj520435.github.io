@@ -254,13 +254,18 @@ export function useArticle() {
       }
       // Codeblock
       else if (tagName === 'PRE') {
-        const code = element.childNodes.item(0);
-        markdown += `\`\`\`\n${(code as HTMLElement).innerText}\`\`\``;
+        markdown += '```\n';
+        Array.from(element.childNodes).forEach((code, i) => {
+          const codeContents = code.textContent;
+          const lineBreak = element.childElementCount !== i + 1 ? '\n' : '';
+          markdown += codeContents + lineBreak;
+        });
+        markdown += '```';
       }
       // List
       else if (tagName === 'UL') {
-        Array.from(element.children).forEach((item) => {
-          const listContents = (item as HTMLElement).innerHTML.replaceAll('\n', '');
+        Array.from(element.children).forEach((list) => {
+          const listContents = (list as HTMLElement).innerHTML.replaceAll('\n', '');
           markdown += `* ${listContents}\n`;
         });
       }
@@ -289,7 +294,7 @@ export function useArticle() {
   }
 
   function replaceToHtmlEntity(s: string) {
-    return s.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('&', '&amp;');
+    return s.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
   }
 
   // function focusToEnd(element: HTMLElement) {

@@ -24,6 +24,19 @@ watch(htmlRef, v => {
 })
 
 const mode: Ref<'HTML' | 'MARKDOWN'> = ref('HTML');
+
+async function changeMode() {
+  mode.value = (mode.value === 'HTML') ? 'MARKDOWN' : 'HTML';
+
+  if (mode.value === 'HTML') {
+    htmlRef.value.innerHTML = '';
+    handler.convertToHtml(markdown.value);
+  }
+
+  if (mode.value === 'MARKDOWN') {
+    markdown.value = handler.convertToMarkdown(htmlRef.value);
+  }
+}
 </script>
 
 <template>
@@ -32,7 +45,7 @@ const mode: Ref<'HTML' | 'MARKDOWN'> = ref('HTML');
       <header>
         <div class="buttons">
           <VItem icon="trash" />
-          <VItem icon="repeat" />
+          <VItem icon="repeat" @click="changeMode" />
           <VItem icon="info" />
           <VItem icon="close" />
         </div>
