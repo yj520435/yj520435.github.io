@@ -44,29 +44,12 @@ export function useArticle() {
     }
   }
 
-  function enter(event: VEvent<HTMLElement>) {
-    event.preventDefault();
-
+  function enter() {
     const selection = window.getSelection();
     if (!selection?.focusNode) return;
 
-    const target = selection.focusNode?.parentElement as HTMLElement;
-
-    if (target.tagName === 'LI') {
-      if (target.innerText === '') {
-        // Do Something
-      } else {
-        const ul = target.parentElement;
-        const li = document.createElement('li');
-        ul?.appendChild(li);
-        focus(li);
-        return;
-      }
-    }
-
-    const p = document.createElement('p');
-    root.value?.appendChild(p);
-    focus(p);
+    const target = selection.focusNode as HTMLElement;
+    if (target.tagName == 'DIV') target.replaceWith(document.createElement('p'));
   }
 
   function input(args?: HTMLElement, isDomEditing?: boolean) {
@@ -99,6 +82,12 @@ export function useArticle() {
         target.innerHTML = target.innerHTML.replace(v[0], `<code>${v[1]}</code>${space}`);
         focus(target);
       }
+    });
+
+    // Mark
+    Array.from(target.innerHTML.matchAll(/==(.+?)==/g)).forEach((v) => {
+      target.innerHTML = target.innerHTML.replace(v[0], `<mark>${v[1]}</mark>${space}`);
+      focus(target);
     });
 
     // Link
@@ -146,7 +135,7 @@ export function useArticle() {
         target.replaceWith(pre);
         code.focus();
 
-        if (v[2]) code.innerHTML = getHtmlEscape(v[2]);
+        if (v[2]) code.innerHTML = replaceToHtmlEntity(v[2]);
       }
     );
 
@@ -203,7 +192,7 @@ export function useArticle() {
     };
 
     for (const item of items) {
-      const html = getHtmlEscape(item);
+      const html = replaceToHtmlEntity(item);
 
       const isList = html.match(/^\s*\*\s(.*\n*)/g);
 
@@ -270,33 +259,37 @@ export function useArticle() {
       }
       // List
       else if (tagName === 'UL') {
-        const items = Array.from(element.children);
-        for (const item of items) {
-          markdown += `* ${(item as HTMLElement).innerHTML}`;
-        }
+        Array.from(element.children).forEach((item) => {
+          const listContents = (item as HTMLElement).innerHTML.replaceAll('\n', '');
+          markdown += `* ${listContents}\n`;
+        });
       }
       // Others
       else markdown += html;
 
       // Inline Tag
-      markdown = markdown
-        .replaceAll(/<strong>(.+?)<\/strong>/g, '**$1**')
-        .replaceAll(/<code>(.+?)<\/code>/g, '`$1`')
-        .replaceAll(/<em>(.+?)<\/em>/g, '*$1*')
-        .replaceAll(/<a href="(.+?)".*>(.+?)<\/a>/g, '[$2]($1)')
-        .replaceAll('&gt;', '>')
-        .replaceAll('&lt;', '<')
-        .replaceAll('&amp;', '&');
+      markdown = replaceToHtmlCharacter(markdown);
 
-      // if (tagName === 'UL')
+      // Line Break
       markdown += tagName !== 'UL' ? '\n' : '';
     }
 
     return markdown;
   }
 
-  function getHtmlEscape(s: string) {
-    return s.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  function replaceToHtmlCharacter(s: string) {
+    return s
+      .replaceAll(/<strong>(.+?)<\/strong>/g, '**$1**')
+      .replaceAll(/<code>(.+?)<\/code>/g, '`$1`')
+      .replaceAll(/<em>(.+?)<\/em>/g, '*$1*')
+      .replaceAll(/<a href="(.+?)".*>(.+?)<\/a>/g, '[$2]($1)')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&amp;', '&');
+  }
+
+  function replaceToHtmlEntity(s: string) {
+    return s.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('&', '&amp;');
   }
 
   // function focusToEnd(element: HTMLElement) {

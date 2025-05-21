@@ -162,6 +162,7 @@ onMounted(() => {
             :key="file.id"
             :icon="icon(file)"
             :text="file.name"
+            title
             @click="isSelectMode ? select(file) : load(file)"
           />
         </div>
@@ -205,9 +206,18 @@ onMounted(() => {
         @extend .scroll;
         @extend .base-view;
         
-        :deep(.item):hover {
-          cursor: pointer;
-          text-decoration: underline;
+        :deep(.item) {
+          &:hover {
+            cursor: pointer;
+            text-decoration: underline;
+          }
+
+          span {
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 250px;
+            overflow: hidden;
+          }
         }
       }
     }

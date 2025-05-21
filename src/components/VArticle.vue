@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { File, PopupOption, ToastOption } from '@/types';
 import hljs from 'highlight.js';
-import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode, onMounted } from 'vue';
-import 'highlight.js/styles/github.css'
+import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode } from 'vue';
+import 'highlight.js/styles/atom-one-dark.css';
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
 import { AxiosError, AxiosResponse } from 'axios';
@@ -293,7 +293,7 @@ function close() {
           v-show="mode === 'HTML'"
           :contenteditable="authStore.isAuthenticated"
           @input="handler.input(undefined, true)"
-          @keydown.enter.exact="handler.enter"
+          @keyup.enter.exact="handler.enter"
           @keydown.tab="handler.tab"
           @keydown.ctrl.v="handler.paste"
           @keydown.ctrl.s="save"
