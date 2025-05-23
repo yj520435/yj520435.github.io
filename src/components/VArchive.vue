@@ -205,8 +205,11 @@ onMounted(() => {
         height: 100%;
         @extend .scroll;
         @extend .base-view;
+        overflow: hidden;
         
         :deep(.item) {
+          flex-wrap: wrap;
+
           &:hover {
             cursor: pointer;
             text-decoration: underline;
@@ -215,7 +218,7 @@ onMounted(() => {
           span {
             text-overflow: ellipsis;
             white-space: nowrap;
-            max-width: 250px;
+            max-width: calc(100% - 26px);
             overflow: hidden;
           }
         }
