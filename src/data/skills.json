@@ -1,0 +1,22 @@
+[
+  {
+    "id": "Front-End",
+    "name": "프론트엔드",
+    "items": ["Vue", "Nuxt"]
+  },
+  {
+    "id": "Back-End",
+    "name": "백엔드",
+    "items": ["Java", "Spring Boot", "PostgreSQL"]
+  },
+  {
+    "id": "SCM",
+    "name": "버전관리",
+    "items": ["Git"]
+  },
+  {
+    "id": "Co-Work",
+    "name": "협업도구",
+    "items": ["Jira", "Slack", "Notion"]
+  }
+]
