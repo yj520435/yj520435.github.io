@@ -1,27 +1,53 @@
-<template>
-  <img alt="Vue logo" src="./assets/logo.png">
-  <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
-</template>
+<script setup lang="ts">
+import { onMounted, Ref, ref } from 'vue';
+import VSkills from './components/VSkills.vue';
+import VCompany from './components/VCompany.vue';
+import VProfile from './components/VProfile.vue';
+import VNavigation from './components/VNavigation.vue';
+import VProject from './components/VProject.vue';
+import VArchive from './components/VArchive.vue';
+import VArticle from './components/VArticle.vue';
+import dayjs from 'dayjs';
+import { File } from './types';
 
-<script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from './components/HelloWorld.vue';
+const target: Ref<File | undefined> = ref();
+const lastBuild = ref();
 
-@Options({
-  components: {
-    HelloWorld,
-  },
-})
-export default class App extends Vue {}
+onMounted(async () => {
+  // preloadImage(projects);
+  const buildDate = document.documentElement.dataset.build;
+  lastBuild.value = dayjs(buildDate).format('YYYY-MM-DD');
+});
 </script>
 
+<template>
+  <main id="root">
+    <VNavigation />
+    <div id="container">
+      <!-- header -->
+      <header>
+        <img :src="require('@/assets/images/profile.png')" alt="profile">
+        <h1>Yu Jin</h1>
+      </header>
+      <!-- main -->
+      <VProfile />
+      <VSkills />
+      <VCompany @load="(file) => target = file"/>
+      <VProject />
+      <VArchive @load="(file) => target = file"/>
+      <!-- footer -->
+      <footer>
+        <span>Last Updated {{ lastBuild }}</span>
+      </footer>
+    </div>
+  </main>
+  <VArticle
+    :file="target"
+    @load="(file) => target = file"
+    @close="() => target = undefined"
+  />
+</template>
+
 <style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+@import 'assets/styles';
 </style>

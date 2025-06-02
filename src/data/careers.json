@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1RsApMVgmRXjA7gycp7KbHoDw37eh89bY",
+    "name": "(주)카피앤패이스트",
+    "from": "2022. 01",
+    "to": "2024. 10",
+    "department": "연구개발팀",
+    "position": "사원",
+    "description": "ICT 기반 비즈니스 서비스 및 솔루션 개발 기업 (KT 협력업체)",
+    "tasks": [
+      "IoT 관제 플랫폼 프로젝트 개발 참여",
+      "Vue 기반 UI 개발, 상태 관리 (Vuex, Pinia)",
+      "Spring Boot 기반 API 개발, 데이터 쿼리 (JPA, MyBatis)",
+      "웹소켓 ・ 다국어 처리 (i18n) ・ API 모킹 (msw)"
+    ]
+  },
+  {
+    "id": "-urpsystem",
+    "name": "(주)유알피시스템",
+    "from": "2018. 06",
+    "to": "2018. 12",
+    "department": "행정포털팀",
+    "position": "사원",
+    "description": "공공분야 IT 인프라 서비스 개발 및 정부업무관리시스템 구축, 운영 기업",
+    "tasks": [
+      "공공현수막 게시대 관리 시스템 개발 참여 (JSP, jQuery)",
+      "온나라문서시스템 유지보수"
+    ]
+  }
+]

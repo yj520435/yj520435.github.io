@@ -1,0 +1,14 @@
+{
+  "name": "김유진",
+  "birth": "1994. 05",
+  "whoAmI": "주니어 웹 개발자",
+  "univ": {
+    "name": {
+      "kor": "인천대학교",
+      "eng": "INU"
+    },
+    "major": "컴퓨터공학부",
+    "url": "https://www.inu.ac.kr/inu/index.do?epTicket=LOG"
+  },
+  "certs": "정보처리기사"
+}
