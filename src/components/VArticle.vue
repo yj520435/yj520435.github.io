@@ -5,7 +5,6 @@ import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode } from 'v
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
 import { AxiosError, AxiosResponse } from 'axios';
-import VItem from './VItem.vue';
 import { getFormattedDate } from '@/utils';
 import { usePopup } from '@/composables/usePopup';
 import { useToast } from '@/composables/useToast';
@@ -260,18 +259,18 @@ function close() {
     <div class="article" :style="{ opacity }">
       <header>
         <div class="buttons">
-          <VItem
+          <button
             v-if="authStore.isAuthenticated"
-            icon="trash"
+            class="trash"
             @click="trash"
           />
-          <VItem
+          <button
             v-if="authStore.isAuthenticated"
-            icon="repeat"
+            class="mode"
             @click="changeMode"
           />
-          <VItem icon="info" @click="info" />
-          <VItem icon="close" @click="close" />
+          <button class="info" @click="info" />
+          <button class="close" @click="close" />
         </div>
       </header>
       <section class="contents">
@@ -354,16 +353,34 @@ function close() {
         display: flex;
         gap: 20px;
 
-        :deep(.item) {
-          gap: 0;
-          cursor: pointer;
+        button {
+          @extend .bg-image-center;
+          filter: none !important;
+          background-size: 18px !important;
 
           &:hover {
             transform: scale(1.3);
           }
 
-          img {
-            filter: none;
+          &.highlight {
+            @include icon(magic-wand);
+          }
+
+          &.trash {
+            @include icon(trash);
+          }
+
+          &.mode {
+            @include icon(switch);
+            background-size: 16px !important;
+          }
+
+          &.info {
+            @include icon(info);
+          }
+
+          &.close {
+            @include icon(close);
           }
         }
       }
