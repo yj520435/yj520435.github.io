@@ -116,8 +116,9 @@ article {
   code {
     font-family: 'Ubuntu Mono' !important;
     color: #282c35;
-    background-color: #abb2bf40;
-    padding: 2px 6px;
+    background-color: #dddddd40;
+    border: 1px solid #dddddd;
+    padding: 2px 4px;
     border-radius: 5px;
     line-height: 1 !important;
   }
@@ -158,6 +159,7 @@ article {
       padding: 0 !important;
       background-color: transparent !important;
       border-radius: 0;
+      border: none;
     }
   }
 

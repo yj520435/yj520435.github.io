@@ -47,27 +47,10 @@ export function useArticle() {
     if (target.tagName == 'DIV') target.replaceWith(document.createElement('p'));
   }
 
-  function scrollToEnd() {
-    const selection = window.getSelection();
-    const focusNode = selection?.focusNode;
-
-    const target =
-      focusNode?.nodeType === Node.TEXT_NODE
-        ? focusNode?.parentElement
-        : (focusNode as HTMLElement);
-
-    if (!target || !root.value) return;
-
-    if (root.value.scrollHeight - target.offsetTop < 30)
-      root.value.scrollTo({ top: root.value.scrollHeight - root.value.offsetHeight });
-  }
-
   function input(args?: HTMLElement, event?: InputEvent) {
     const selection = window.getSelection();
     const target = args ?? selection?.focusNode?.parentElement;
     if (!target) return;
-
-    scrollToEnd();
 
     // Do nothing if this event is invoked in codeblock
     const isCode = target?.tagName === 'CODE' && target?.parentElement?.tagName === 'PRE';
