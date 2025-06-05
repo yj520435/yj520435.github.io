@@ -113,6 +113,12 @@ article {
     @include article-header(18px);
   }
 
+  h6 {
+    @include article-header(16px);
+    color: #aaaaaa;
+    margin: 0;
+  }
+
   code {
     font-family: 'Ubuntu Mono' !important;
     color: #282c35;
