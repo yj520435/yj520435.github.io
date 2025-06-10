@@ -47,20 +47,47 @@ export function useArticle() {
     if (target.tagName == 'DIV') target.replaceWith(document.createElement('p'));
   }
 
-  function input(args?: HTMLElement, event?: InputEvent) {
+  function getTarget(args?: HTMLElement) {
+    if (args) return args;
+
     const selection = window.getSelection();
-    const target = args ?? selection?.focusNode?.parentElement;
+    const focusNode = selection?.focusNode;
+    if (!focusNode) return null;
+
+    return (focusNode.nodeType === Node.TEXT_NODE)
+      ? focusNode.parentElement
+      : focusNode as HTMLElement;
+  }
+  
+  function input(args?: HTMLElement, event?: InputEvent) {
+    const target = getTarget(args);
     if (!target) return;
 
     // Do nothing if this event is invoked in codeblock
-    const isCode = target?.tagName === 'CODE' && target?.parentElement?.tagName === 'PRE';
-    const isPre = target?.tagName === 'PRE';
-    if (isCode || isPre) return;
+    if (target?.tagName.match(/PRE|CODE/g)) return;
+    if (target?.parentElement?.tagName.match(/CODE/g)) return;
+
+    if (event?.inputType === 'insertText') {
+      target.innerHTML = target.innerHTML.replaceAll('\u200B', '');
+      focus(target);  
+    }
 
     const find = (regexp: RegExp) => {
       const matched = Array.from(target.innerHTML.matchAll(regexp));
       return matched.length > 0 ? matched : null;
     };
+
+    const change = (v: RegExpMatchArray, to: string, exception?: boolean) => {
+      if (exception) return;
+
+      const zwsb = (event?.inputType === 'insertText') ? '\u200B' : '';
+      const html = (['strong', 'em', 'code', 'mark'].includes(to))
+        ? `<${to}>${v[1]}</${to}>${zwsb}`
+        : to;
+      
+      target.innerHTML = target.innerHTML.replace(v[0], html);
+      focus(target);
+    }
 
     // Block level element
     const codeblockValues = find(/```(\w*)(\n?)(?:((?:.*\n)*)```)*/g);
@@ -131,7 +158,7 @@ export function useArticle() {
       orderedListValues.forEach((v, i) => {
         const isFirstList = i === 0;
 
-        if (i === 0) {
+        if (isFirstList) {
           ol = document.createElement('ol');
           target.replaceWith(ol);
         }
@@ -139,8 +166,6 @@ export function useArticle() {
         if (!ol) return;
         const li = document.createElement('li');
         ol.appendChild(li);
-
-        if (isFirstList) target.replaceWith(ol);
 
         if (v[1]) {
           li.innerHTML = v[1];
@@ -150,48 +175,18 @@ export function useArticle() {
       return;
     }
 
-    const space = event?.inputType === 'insertText' ? ' ' : '';
-
     // Inline level element
     const boldValues = find(/\*\*(.+?)\*\*/g);
-    boldValues?.forEach((v) => {
-      target.innerHTML = target.innerHTML.replace(
-        v[0],
-        `<strong>${v[1]}</strong>${space}`
-      );
-      focus(target);
-    });
-
     const italicValues = find(/\*(.+?)\*/g);
-    italicValues?.forEach((v) => {
-      if (!v[1].startsWith('*')) {
-        target.innerHTML = target.innerHTML.replace(v[0], `<em>${v[1]}</em>${space}`);
-        focus(target);
-      }
-    });
-
     const codeValues = find(/`(.+?)`/g);
-    codeValues?.forEach((v) => {
-      if (!v.input?.startsWith('```')) {
-        target.innerHTML = target.innerHTML.replace(v[0], `<code>${v[1]}</code>${space}`);
-        focus(target);
-      }
-    });
-
     const markValues = find(/==(.+?)==/g);
-    markValues?.forEach((v) => {
-      target.innerHTML = target.innerHTML.replace(v[0], `<mark>${v[1]}</mark>${space}`);
-      focus(target);
-    });
-
     const linkValues = find(/\[(.*?)\]\((.+?)\)/g);
-    linkValues?.forEach((v) => {
-      target.innerHTML = target.innerHTML.replace(
-        v[0],
-        `<a href="${v[2]}" target="_blank">${v[1]}</a>`
-      );
-      focus(target);
-    });
+
+    boldValues?.forEach((v) => change(v, 'strong'));
+    italicValues?.forEach((v) => change(v, 'em', v[1].startsWith('*')));
+    codeValues?.forEach((v) => change(v, 'code', v.input?.startsWith('```')));
+    markValues?.forEach((v) => change(v, 'mark'));
+    linkValues?.forEach((v) => change(v, `<a href="${v[2]}" target="_blank">${v[1]}</a>`));
   }
 
   async function paste(args: Event) {
@@ -298,6 +293,7 @@ export function useArticle() {
       else if (tagName === 'PRE') {
         markdown += '```';
         Array.from(element.children).forEach((code, index) => {
+          code.classList.remove('hljs');
           if (index === 0)
             markdown += (code.classList.length > 0 ? code.classList[0] : '') + '\n';
           const codeContents = code.textContent;
@@ -341,29 +337,17 @@ export function useArticle() {
       .replaceAll(/<code>(.+?)<\/code>/g, '`$1`')
       .replaceAll(/<em>(.+?)<\/em>/g, '*$1*')
       .replaceAll(/<mark>(.+?)<\/mark>/g, '==$1==')
-      .replaceAll(/<a href="(.+?)".*>(.+?)<\/a>/g, '[$2]($1)')
+      .replaceAll(/<a href="(.+?)" target="_blank">(.+?)<\/a>/g, '[$2]($1)')
       .replaceAll('&gt;', '>')
       .replaceAll('&lt;', '<')
       .replaceAll('&amp;', '&');
   }
 
   function replaceToHtmlEntity(s: string) {
-    return s.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return s
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
   }
-
-  // function focusToEnd(element: HTMLElement) {
-  //   if (element.innerText.length === 0) {
-  //     element.focus();
-  //     return;
-  //   }
-
-  //   const selection = window.getSelection();
-  //   const newRange = document.createRange();
-  //   newRange.selectNodeContents(element);
-  //   newRange.collapse(false);
-  //   selection?.removeAllRanges();
-  //   selection?.addRange(newRange);
-  // }
 
   return {
     init,
