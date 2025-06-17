@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import VWrapper from './VWrapper.vue';
+import VWrapper from './base/VWrapper.vue';
 import { ROOT_FOLDER_ID, FOLDER_MIME_TYPE } from '@/constants';
 import { sortAlphabetically } from '@/utils';
 import { computed, onMounted, Ref, ref, watch, defineEmits } from 'vue';
 import { File, MimeType } from '@/types';
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 import { usePopup } from '@/composables/usePopup';
 
 const emits = defineEmits<{

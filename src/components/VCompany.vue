@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { companies } from '@/constants';
-import VWrapper from './VWrapper.vue';
+import VWrapper from './base/VWrapper.vue';
 import { Company } from '@/types';
 import { defineEmits } from 'vue';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 
 const emits = defineEmits(['load']);
 

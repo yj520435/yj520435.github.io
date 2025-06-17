@@ -5,7 +5,7 @@ import { Account } from '@/types';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { onMounted, ref, watch } from 'vue';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 import { storeToRefs } from 'pinia';
 
 const authStore = useAuthStore();

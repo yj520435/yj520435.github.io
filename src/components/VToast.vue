@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, defineProps, defineEmits, computed, onMounted } from 'vue';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 import { ToastOption } from '@/types';
 
 const props = defineProps<{

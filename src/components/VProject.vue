@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import VWrapper from './VWrapper.vue';
+import VWrapper from './base/VWrapper.vue';
 import { projects } from '@/constants';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 
 const color = ref(false);
 const projectIndex = ref(0);

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import VItem from './VItem.vue';
-import VWrapper from './VWrapper.vue';
+import VItem from './base/VItem.vue';
+import VWrapper from './base/VWrapper.vue';
 import { profile } from '@/constants';
 
 const { name, birth, whoAmI, univ, certs } = profile
