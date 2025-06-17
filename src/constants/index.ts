@@ -11,7 +11,7 @@ export const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
 
 export { default as profile } from '@/data/profile.json';
 export { default as skills } from '@/data/skills.json';
-export { default as companies } from '@/data/careers.json';
+export { default as works } from '@/data/works.json';
 export { default as projects } from '@/data/projects.json';
 
 export const COOKIE_KEYS = [

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref } from 'vue';
 import VSkills from './components/VSkills.vue';
-import VCompany from './components/VCompany.vue';
+import VWork from './components/VWork.vue';
 import VProfile from './components/VProfile.vue';
 import VNavigation from './components/VNavigation.vue';
 import VProject from './components/VProject.vue';
@@ -32,7 +32,7 @@ onMounted(async () => {
       <!-- main -->
       <VProfile />
       <VSkills />
-      <VCompany @load="(file) => target = file"/>
+      <VWork @load="(file) => target = file"/>
       <VProject />
       <VArchive @load="(file) => target = file"/>
       <!-- footer -->

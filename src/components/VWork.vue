@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { companies } from '@/constants';
+import { works } from '@/constants';
 import VWrapper from './base/VWrapper.vue';
-import { Company } from '@/types';
+import { Work } from '@/types';
 import { defineEmits } from 'vue';
 import VItem from './base/VItem.vue';
 
 const emits = defineEmits(['load']);
 
-function loadCompany(company: Company) {
-  if (company.id.startsWith('-'))
+function loadWork(work: Work) {
+  if (work.id.startsWith('-'))
     return;
 
   emits('load', {
-    id: company.id,
-    name: company.name,
+    id: work.id,
+    name: work.name,
     mimeType: 'text/x-markdown',
     kind: ''
   });
@@ -21,26 +21,26 @@ function loadCompany(company: Company) {
 </script>
 
 <template>
-  <VWrapper id="company" title="work experience">
+  <VWrapper id="work" title="work experience">
     <div class="view">
       <VItem
-        v-for="company of companies"
-        :key="company.id"
+        v-for="work of works"
+        :key="work.id"
         icon="pin"
       >
         <template #text>
           <span
-            @click="loadCompany(company)"
-            :class="{ active : !company.id.startsWith('-') }"
+            @click="loadWork(work)"
+            :class="{ active : !work.id.startsWith('-') }"
           >
-            {{ company.name }}
+            {{ work.name }}
           </span>
-          <span>{{ company.from }} - {{ company.to }}</span>
+          <span>{{ work.from }} - {{ work.to }}</span>
         </template>
         <template #subitem>
           <div class="tasks">
             <span
-              v-for="(task, i) of company.tasks"
+              v-for="(task, i) of work.tasks"
               :key="i"
             >
               {{ task }}
