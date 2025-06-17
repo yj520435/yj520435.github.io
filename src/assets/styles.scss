@@ -191,6 +191,7 @@ article {
     padding: 2px 4px;
     border-radius: 5px;
     line-height: 1 !important;
+    white-space: nowrap !important;
   }
 
   blockquote {
@@ -230,6 +231,8 @@ article {
       background-color: transparent !important;
       border-radius: 0;
       border: none;
+      white-space: pre-wrap !important;
+      min-height: 24px !important;
     }
   }
 
@@ -256,30 +259,4 @@ article {
     background: linear-gradient(white 0 60%, #ff000020 60% 90%, white 90%);
     padding: 0 4px;
   }
-
-  // sub {
-  //   position: relative;
-  //   font-size: 12px;
-  //   padding-bottom: 7px;
-  //   top: -4px;
-  //   opacity: 0.6;
-  // }
-
-  // sup,
-  // sup * {
-  //   opacity: 0.8;
-  //   font-size: 13px;
-  //   display: inline-block;
-  // }
-}
-
-#editor {
-  position: absolute;
-  width: 100%;
-  height: 100vh;
-  background-color: white;
-  top: 0;
-  left: 0;
-  z-index: 30;
-  padding-top: 20px;
 }
