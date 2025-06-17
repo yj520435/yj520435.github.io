@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import { File } from './types';
 
 const target: Ref<File | undefined> = ref();
+const filter: Ref<string> = ref('');
 
 const show = ref(false);
 const componentItems = ref([
@@ -67,7 +68,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main id="root">
+  <main id="root" :style="{ filter }">
     <VNavigation />
     <div id="container">
       <!-- header -->
@@ -93,8 +94,8 @@ onUnmounted(() => {
   </main>
   <VArticle
     :file="target"
-    @load="(file) => target = file"
-    @close="() => target = undefined"
+    @load="() => filter = 'blur(10px)'"
+    @close="() => { target = undefined; filter = ''; }"
   />
 </template>
 

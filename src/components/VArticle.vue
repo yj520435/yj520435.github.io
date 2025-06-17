@@ -16,7 +16,7 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   close: [],
-  load: [file: File]
+  load: []
 }>();
 
 const authStore = useAuthStore();
@@ -107,6 +107,7 @@ watch(file, async (v?: File) => {
     handler.convertToHtml(markdownCopy.value);
     loading.value = false;
     opacity.value = 1;
+    emits('load');
 
     setTimeout(addElementEvent, 500);
   }
@@ -186,17 +187,7 @@ function info() {
 }
 
 async function rename(component: VNode) {
-  if (!file.value || !component.el) return;
-  const name = component.el.value;
-  
-  popup.hide();
-  updating.value = true;
-
-  const response: AxiosResponse | undefined = await updateFile(file.value.id, { name });
-  if (response && response.status === 200)
-    emits('load', response.data);
-
-  updating.value = false;
+  //
 }
 
 async function save(event: KeyboardEvent) {
@@ -299,6 +290,7 @@ function close() {
 <style lang="scss" scoped>
 #article {
   @extend .shadow;
+  background-color: #00000070;
 
   transform-origin: center;
   z-index: 10;
@@ -328,10 +320,10 @@ function close() {
     margin: 0;
     border: $base-border;
     background-color: #ffffff;
-    width: 100%;
-    max-width: 603px;
     display: grid;
     grid-template-rows: 40px 1fr;
+    transition: 600ms;
+    max-width: 900px;
 
     * {
       font-family: 'Noto Sans KR';
@@ -343,7 +335,6 @@ function close() {
       align-items: center;
       justify-content: right;
       width: 100%;
-      max-width: inherit;
       height: 40px;
       background-color: white;
       z-index: 11;
@@ -405,7 +396,6 @@ function close() {
 
     .contents {
       height: calc(100vh - 40px);
-      max-width: inherit;
       display: grid;
 
       textarea {
