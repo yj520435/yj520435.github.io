@@ -1,21 +1,27 @@
 import { getCookie } from '@/utils';
-import axios from 'axios';
+import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 
-function interceptor(config: any) {
-  const accessToken = getCookie('access_token');
-  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-  return config;
+function getAxiosInstance(baseURL: string): AxiosInstance {
+  const instance = axios.create({
+    baseURL,
+    timeout: 6000
+  });
+
+  instance.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+    const accessToken = getCookie('access_token');
+    if (accessToken)
+      config.headers.Authorization = `Bearer ${accessToken}`;
+    return config;
+  });
+
+  instance.interceptors.response.use((response: AxiosResponse) => {
+    return response;    
+  }, (error: AxiosError) => {
+    return Promise.reject(error);
+  });
+
+  return instance;
 }
 
-export const $drive = axios.create({
-  baseURL: 'https://www.googleapis.com/drive/v3/files',
-  timeout: 6000,
-});
-
-export const $upload = axios.create({
-  baseURL: 'https://www.googleapis.com/upload/drive/v3/files',
-  timeout: 6000,
-});
-
-$drive.interceptors.request.use(interceptor);
-$upload.interceptors.request.use(interceptor);
+export const $drive = getAxiosInstance('https://www.googleapis.com/drive/v3/files');
+export const $upload = getAxiosInstance('https://www.googleapis.com/upload/drive/v3/files');

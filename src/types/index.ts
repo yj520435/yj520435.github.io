@@ -1,4 +1,4 @@
-export interface Company {
+export interface Work {
   id: string;
   name: string;
   from: string;

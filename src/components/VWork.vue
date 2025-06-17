@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { companies } from '@/constants';
-import VWrapper from './VWrapper.vue';
-import { Company } from '@/types';
+import { works } from '@/constants';
+import VWrapper from './base/VWrapper.vue';
+import { Work } from '@/types';
 import { defineEmits } from 'vue';
-import VItem from './VItem.vue';
+import VItem from './base/VItem.vue';
 
 const emits = defineEmits(['load']);
 
-function loadCompany(company: Company) {
-  if (company.id.startsWith('-'))
+function loadWork(work: Work) {
+  if (work.id.startsWith('-'))
     return;
 
   emits('load', {
-    id: company.id,
-    name: company.name,
+    id: work.id,
+    name: work.name,
     mimeType: 'text/x-markdown',
     kind: ''
   });
@@ -21,26 +21,23 @@ function loadCompany(company: Company) {
 </script>
 
 <template>
-  <VWrapper id="company" title="work experience">
+  <VWrapper id="work" title="work experience">
     <div class="view">
       <VItem
-        v-for="company of companies"
-        :key="company.id"
+        v-for="work of works"
+        :key="work.id"
         icon="pin"
+        :text="work.name"
       >
-        <template #text>
-          <span
-            @click="loadCompany(company)"
-            :class="{ active : !company.id.startsWith('-') }"
-          >
-            {{ company.name }}
-          </span>
-          <span>{{ company.from }} - {{ company.to }}</span>
-        </template>
         <template #subitem>
+          <div class="details">
+            {{ work.from }} - {{ work.to }} <span class="divider" />
+            {{ work.department }} <span class="divider" />
+            {{ work.position }}
+          </div>
           <div class="tasks">
             <span
-              v-for="(task, i) of company.tasks"
+              v-for="(task, i) of work.tasks"
               :key="i"
             >
               {{ task }}
@@ -71,10 +68,23 @@ function loadCompany(company: Company) {
     }
   }
 
+  .details {
+    margin-left: 27px;
+
+    .divider::after {
+      content: '|';
+      display: inline-block;
+      color: #dddddd40;
+      text-align: center;
+      margin: 0 6px;
+    }
+  }
+
   .tasks {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 10px;
 
     span {
       opacity: 0.6;

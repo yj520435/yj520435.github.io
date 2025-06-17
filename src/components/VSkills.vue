@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { skills } from '@/constants';
-import VWrapper from './VWrapper.vue';
-import VItem from './VItem.vue';
+import VWrapper from './base/VWrapper.vue';
+import VItem from './base/VItem.vue';
 
 </script>
 

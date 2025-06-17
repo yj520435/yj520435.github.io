@@ -1,4 +1,4 @@
-import VToast from '@/components/VToast.vue';
+import VToast from '@/components/common/VToast.vue';
 import { ToastOption } from '@/types';
 import { h, render } from 'vue';
 

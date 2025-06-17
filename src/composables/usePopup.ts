@@ -1,4 +1,4 @@
-import VPopup from '@/components/VPopup.vue';
+import VPopup from '@/components/common/VPopup.vue';
 import { PopupOption } from '@/types';
 import { h, render } from 'vue';
 
