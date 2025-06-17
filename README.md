@@ -1,6 +1,6 @@
 # 포트폴리오
 
-![portfolio](https://github.com/user-attachments/assets/40cc5479-420f-4003-9afe-2d3e6d73db9e)
+![portfolio](https://github.com/user-attachments/assets/e879987e-ba6d-4ea8-bc7a-7593c18d3bff)
 
 ## 프로젝트 소개
 
@@ -90,4 +90,4 @@ export const useAuthStore = defineStore('auth', () => {
 ### 파일 컨텐츠 로드 및 편집
 
 **직접 개발한 Markdown Text ↔ HTML DOM 변환 로직**을 사용하고 있습니다.  
-다양한 마크다운 문법을 지원하기 위해 지속적으로 업데이트중입니다.
+보다 유연한 에디터/뷰어 구현을 위해 지속적으로 업데이트중입니다.
