@@ -19,9 +19,9 @@ const show = ref(false);
 const componentItems = ref([
   { id: 'profile', to: '#body', is: h(VProfile) },
   { id: 'skill', to: '#body', is: h(VSkills) },
-  { id: 'project', to: '#body', is: h(VProject) },
   { id: 'work', to: '#body', is: h(VWork) },
   { id: 'attach', to: '#body', is: h(VAttach) },
+  { id: 'project', to: '#body', is: h(VProject) },
   { id: 'archive', to: '#body', is: h(VArchive, { onLoad: (file) => target.value = file }) },
   { id: 'contact', to: '#body', is: h(VContact) },
 ]);
