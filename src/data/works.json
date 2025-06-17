@@ -1,6 +1,6 @@
 [
   {
-    "id": "1RsApMVgmRXjA7gycp7KbHoDw37eh89bY",
+    "id": "copynpaste",
     "name": "(주)카피앤패이스트",
     "from": "2022. 01",
     "to": "2024. 10",
@@ -11,11 +11,12 @@
       "IoT 관제 플랫폼 프로젝트 개발 참여",
       "Vue 기반 UI 개발, 상태 관리 (Vuex, Pinia)",
       "Spring Boot 기반 API 개발, 데이터 쿼리 (JPA, MyBatis)",
-      "웹소켓 ・ 다국어 처리 (i18n) ・ API 모킹 (msw)"
+      "웹소켓 ・ 다국어 처리 (i18n) ・ API 모킹 (msw)",
+      "버전 관리 (GitLab)"
     ]
   },
   {
-    "id": "-urpsystem",
+    "id": "urpsystem",
     "name": "(주)유알피시스템",
     "from": "2018. 06",
     "to": "2018. 12",

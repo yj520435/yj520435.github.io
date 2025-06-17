@@ -32,16 +32,17 @@ button {
   #container {
     @extend .base-view;
     width: 100%;
-    max-width: 600px;
     margin: 0 auto;
     justify-content: flex-start;
     transform: scale(1);
     transform-origin: top;
+    align-items: center;
 
     header {
       display: flex;
       flex-direction: column;
       align-items: center;
+      margin-bottom: 10px;
 
       img {
         width: 110px;
@@ -57,8 +58,22 @@ button {
       }
     }
 
+    #body {
+      display: grid;
+      gap: 30px;
+      height: 100%;
+      margin: 0 auto;
+
+      > div {
+        height: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
+
     footer {
-      padding: 15px 0 45px 0;
+      padding: 15px 0;
       text-align: center;
 
       span {
@@ -68,6 +83,55 @@ button {
         margin: 3px 0;
       }
     }
+  }
+}
+
+@media (width <= 630px) {
+  #body {
+    grid-template-columns: 1fr;
+    width: 100%;
+
+    > div {
+      width: 100%;
+    }
+  }
+}
+
+@media (630px < width <= 1200px) {
+  #body {
+    grid-template-columns: 1fr;
+
+    > div {
+      width: 600px;
+    }
+  }
+}
+
+@media (1200px < width <= 1700px) {
+  #body {
+    grid-template-columns: 1fr 1fr;
+
+    > div {
+      width: 560px;
+    }
+  }
+
+  #archive .view {
+    height: 210px !important;
+  }
+}
+
+@media (width > 1700px) {
+  #body {
+    grid-template-columns: 1fr 1fr 1fr;
+
+    > div {
+      width: 530px;
+    }
+  }
+
+  #archive .view {
+    height: 204px !important;
   }
 }
 

@@ -38,44 +38,51 @@ function next() {
         @click="color = !color"
         :class="{ color : color }"
       />
-      <VItem icon="link">
-        <template #text>
-          <a
-            :href="project.link"
-            target="_blank"
-            :style="{ textDecoration : 'underline' }"
-          >
-            {{ project.name }}
-          </a>
-        </template>
-      </VItem>
-      <VItem icon="calendar" :text="`${project.from} - ${project.to}`"/>
-      <VItem icon="terminal" :text="project.keywords.join(' ・ ')" />
-      <VItem icon="annotation">
-        <template #text>
-          <span>{{ project.comment }}</span>
-        </template>
-        <template #subitem>
-          <div class="details">
-            <span
-              v-for="(detail, i) of project.details"
-              :key="i"
-            >{{ detail }}</span>
-          </div>
-        </template>
-      </VItem>
-    </div>
-    <div class="paging">
-      <button @click="prev" :disabled="isFirstProject" />
-      <span>{{ projectIndex + 1 }} / {{ projects.length }}</span>
-      <button @click="next" :disabled="isLastProject" />
+      <div class="summary">
+        <VItem icon="link">
+          <template #text>
+            <a
+              :href="project.link"
+              target="_blank"
+              :style="{ textDecoration : 'underline' }"
+            >
+              {{ project.name }}
+            </a>
+          </template>
+        </VItem>
+        <VItem icon="calendar" :text="`${project.from} - ${project.to}`"/>
+        <VItem icon="terminal" :text="project.keywords.join(' ・ ')" />
+        <VItem icon="annotation">
+          <template #text>
+            <span>{{ project.comment }}</span>
+          </template>
+          <template #subitem>
+            <div class="details">
+              <span
+                v-for="(detail, i) of project.details"
+                :key="i"
+              >{{ detail }}</span>
+            </div>
+          </template>
+        </VItem>
+      </div>
+      <div class="paging">
+        <div>
+          <button @click="prev" :disabled="isFirstProject" />
+          <span>{{ projectIndex + 1 }} / {{ projects.length }}</span>
+          <button @click="next" :disabled="isLastProject" />
+        </div>
+      </div>
     </div>
   </VWrapper>
 </template>
 
 <style lang="scss" scoped>
 .view {
-  @extend .base-view;
+  height: calc(100% - 16px);
+  display: grid;
+  grid-template-rows: 290px 1fr 14px;
+  gap: 10px;
 
   .image {
     @extend .flex-center;
@@ -96,56 +103,54 @@ function next() {
   }
 }
 
-.details {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.summary {
+  @extend .base-view;
 
-  span {
-    opacity: 0.6;
-    margin-left: 27px;
+  .details {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    span {
+      opacity: 0.6;
+      margin-left: 27px;
+    }
   }
 }
 
 .paging {
   @extend .label;
-  position: absolute;
-  display: inline-flex;
+  display: flex;
+  justify-content: right;
+  width: 100%;
   align-items: center;
-  left: calc(100% - 90px);
-  transform: translateY(-9px);
+  background-color: transparent;
+  margin-top: 10px;
 
-  button {
-    @extend .bg-image-center;
-    @include icon(arrow-right-normal);
-    background-size: auto !important;
-    padding: 0;
+  div {
+    display: inline-flex;
+    align-items: center;
 
-    &:first-child {
-      transform: rotate(-180deg);
+    button {
+      @extend .bg-image-center;
+      @include icon(arrow-right-normal);
+      background-size: auto !important;
+      padding: 0;
+
+      &:first-child {
+        transform: rotate(-180deg);
+      }
+
+      &:disabled {
+        opacity: 0.3;
+      }
     }
 
-    &:disabled {
-      opacity: 0.4;
+    span {
+      display: inline-block;
+      width: 40px;
+      text-align: center;
     }
-  }
-
-  span {
-    display: inline-block;
-    width: 40px;
-    text-align: center;
-  }
-}
-
-@media (width < 510px) {
-  #project .image {
-    height: 200px;
-  }
-}
-
-@media (width >= 510px) {
-  #project .image {
-    height: 290px;
   }
 }
 </style>

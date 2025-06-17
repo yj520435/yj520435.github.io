@@ -19,16 +19,24 @@ const { id, title } = toRefs(props);
 </template>
 
 <style lang="scss" scoped>
+section {
+  height: 100%;
+}
+
 .title {
   @extend .label;
   position: relative;
   padding: 0 2px 0 4px;
   top: 8px;
   left: 17px;
+  background-color: transparent;
+  color: #dddddd60;
 }
 
 :slotted(.view) {
-  border: 1px solid $text-color;
-  padding: 15px;
+  border: none;
+  padding: 20px;
+  background-color: #dddddd10;
+  border-radius: 9px;
 }
 </style>

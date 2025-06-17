@@ -27,17 +27,14 @@ function loadWork(work: Work) {
         v-for="work of works"
         :key="work.id"
         icon="pin"
+        :text="work.name"
       >
-        <template #text>
-          <span
-            @click="loadWork(work)"
-            :class="{ active : !work.id.startsWith('-') }"
-          >
-            {{ work.name }}
-          </span>
-          <span>{{ work.from }} - {{ work.to }}</span>
-        </template>
         <template #subitem>
+          <div class="details">
+            {{ work.from }} - {{ work.to }} <span class="divider" />
+            {{ work.department }} <span class="divider" />
+            {{ work.position }}
+          </div>
           <div class="tasks">
             <span
               v-for="(task, i) of work.tasks"
@@ -71,10 +68,23 @@ function loadWork(work: Work) {
     }
   }
 
+  .details {
+    margin-left: 27px;
+
+    .divider::after {
+      content: '|';
+      display: inline-block;
+      color: #dddddd40;
+      text-align: center;
+      margin: 0 6px;
+    }
+  }
+
   .tasks {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 10px;
 
     span {
       opacity: 0.6;
