@@ -11,11 +11,16 @@ export function useArticle() {
     root.value = args;
   }
 
-  function focus(target: Node) {
+  function focus(target: Node, offset?: number) {
     const selection = window.getSelection();
     selection?.removeAllRanges();
     const range = document.createRange();
-    range.selectNodeContents(target);
+    if (offset) {
+      range.setStart(target, offset);
+      range.setEnd(target, offset);  
+    } else {
+      range.selectNodeContents(target);
+    }
     range.collapse(false);
     selection?.addRange(range);
   }
@@ -47,46 +52,72 @@ export function useArticle() {
     if (target.tagName == 'DIV') target.replaceWith(document.createElement('p'));
   }
 
-  function getTarget(args?: HTMLElement) {
-    if (args) return args;
+  function getTarget(args?: HTMLElement, node?: Node | null): HTMLElement | undefined {
+    if (args)
+      return args;
 
-    const selection = window.getSelection();
-    const focusNode = selection?.focusNode;
-    if (!focusNode) return null;
+    if (!node)
+      return;
 
-    return (focusNode.nodeType === Node.TEXT_NODE)
-      ? focusNode.parentElement
-      : focusNode as HTMLElement;
+    if (node.nodeType === Node.TEXT_NODE)
+      return node.parentElement ?? undefined;
+    else
+      return node as HTMLElement;
   }
-  
-  function input(args?: HTMLElement, event?: InputEvent) {
-    const target = getTarget(args);
+
+  function input(args?: HTMLElement) {
+    const selection = window.getSelection();
+    const node = selection?.focusNode;
+    const offset = selection?.focusOffset;
+
+    const target: HTMLElement | undefined = getTarget(args, node);
     if (!target) return;
 
     // Do nothing if this event is invoked in codeblock
     if (target?.tagName.match(/PRE|CODE/g)) return;
     if (target?.parentElement?.tagName.match(/CODE/g)) return;
 
-    if (event?.inputType === 'insertText') {
-      target.innerHTML = target.innerHTML.replaceAll('\u200B', '');
-      focus(target);  
-    }
-
     const find = (regexp: RegExp) => {
-      const matched = Array.from(target.innerHTML.matchAll(regexp));
+      const text = args ? args.innerHTML : (node?.textContent ?? '');
+      const matched = Array.from(text.matchAll(regexp));
       return matched.length > 0 ? matched : null;
     };
 
-    const change = (v: RegExpMatchArray, to: string, exception?: boolean) => {
+    const change = (
+      match: RegExpMatchArray,
+      name: string,
+      props?: { [key: string]: string },
+      exception?: boolean
+    ) => {
       if (exception) return;
 
-      const zwsb = (event?.inputType === 'insertText') ? '\u200B' : '';
-      const html = (['strong', 'em', 'code', 'mark'].includes(to))
-        ? `<${to}>${v[1]}</${to}>${zwsb}`
-        : to;
-      
-      target.innerHTML = target.innerHTML.replace(v[0], html);
-      focus(target);
+      const element = document.createElement(name);
+      element.innerHTML = match[1];
+      if (props) {
+        Object.keys(props).forEach((key: string) => {
+          element.setAttribute(key, props[key]);
+        });
+      }
+
+      if (args) {
+        args.innerHTML = args.innerHTML.replace(match[0], element.outerHTML);
+      } else if (offset) {
+        const text = node?.textContent ?? '';
+        const childNodes = Array.from(target.childNodes.values());
+        const index = childNodes.findIndex((v) => v === node);
+  
+        const prevNodes = childNodes.filter((v, i) => i < index).map((v) => v as Node);
+        const splitText = document.createTextNode(text.substring(0, offset - match[0].length));
+        const nextNodes = [
+          document.createTextNode(text.substring(offset) || '\u200B'),
+          ...childNodes.filter((v, i) => i > index).map((v) => v as Node)
+        ];
+  
+        target.replaceChildren(...prevNodes, splitText, element, ...nextNodes);
+        focus(nextNodes[0], Number(nextNodes[0].textContent === '\u200B'));
+      } else {
+        return;
+      }
     }
 
     // Block level element
@@ -177,16 +208,19 @@ export function useArticle() {
 
     // Inline level element
     const boldValues = find(/\*\*(.+?)\*\*/g);
-    const italicValues = find(/\*(.+?)\*/g);
-    const codeValues = find(/`(.+?)`/g);
-    const markValues = find(/==(.+?)==/g);
-    const linkValues = find(/\[(.*?)\]\((.+?)\)/g);
+    boldValues?.forEach((v) => change(v, 'strong', {}));
 
-    boldValues?.forEach((v) => change(v, 'strong'));
-    italicValues?.forEach((v) => change(v, 'em', v[1].startsWith('*')));
-    codeValues?.forEach((v) => change(v, 'code', v.input?.startsWith('```')));
-    markValues?.forEach((v) => change(v, 'mark'));
-    linkValues?.forEach((v) => change(v, `<a href="${v[2]}" target="_blank">${v[1]}</a>`));
+    const italicValues = find(/\*(.+?)\*/g);
+    italicValues?.forEach((v) => change(v, 'em', {}, v[1].startsWith('*')));
+
+    const codeValues = find(/`(.+?)`/g);
+    codeValues?.forEach((v) => change(v, 'code', {}, v.input?.startsWith('```')));
+
+    const markValues = find(/==(.+?)==/g);
+    markValues?.forEach((v) => change(v, 'mark', {}));
+
+    const linkValues = find(/\[(.*?)\]\((.+?)\)/g);
+    linkValues?.forEach((v) => change(v, 'a', { href: v[2], target: '_blank' }));
   }
 
   async function paste(args: Event) {
@@ -332,6 +366,7 @@ export function useArticle() {
 
   function replaceToHtmlCharacter(s: string) {
     return s
+      .replaceAll('\u200B', '')
       .replaceAll('<br>', '')
       .replaceAll(/<strong>(.+?)<\/strong>/g, '**$1**')
       .replaceAll(/<code>(.+?)<\/code>/g, '`$1`')
