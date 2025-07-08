@@ -251,6 +251,9 @@ export function useArticle() {
         case 'HEADER':
           continue;
         case 'H1':
+        case 'H2':
+        case 'H3':
+        case 'H6':
           header(element, html);
           break;
         case 'BLOCKQUOTE':
