@@ -317,6 +317,7 @@ function close() {
   }
 
   .article {
+    width: 100%;
     margin: 0;
     border: $base-border;
     background-color: #ffffff;

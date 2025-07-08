@@ -259,4 +259,11 @@ article {
     background: linear-gradient(white 0 60%, #ff000020 60% 90%, white 90%);
     padding: 0 4px;
   }
+
+  img {
+    max-width: 600px;
+    width: 100%;
+    display: block;
+    margin: 10px auto;
+  }
 }
