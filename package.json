@@ -13,7 +13,8 @@
     "dayjs": "^1.11.13",
     "pinia": "^3.0.2",
     "vue": "^3.2.13",
-    "vue-class-component": "^8.0.0-0"
+    "vue-class-component": "^8.0.0-0",
+    "vue-showdown": "^4.2.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^5.4.0",

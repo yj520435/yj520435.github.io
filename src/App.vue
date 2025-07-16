@@ -11,6 +11,7 @@ import VAttach from './components/VAttach.vue';
 import VContact from './components/VContact.vue';
 import dayjs from 'dayjs';
 import { File } from './types';
+import VShowdown from './components/VShowdown.vue';
 
 const target: Ref<File | undefined> = ref();
 const filter: Ref<string> = ref('');
@@ -92,7 +93,7 @@ onUnmounted(() => {
       </footer>
     </div>
   </main>
-  <VArticle
+  <VShowdown
     :file="target"
     @load="() => filter = 'blur(10px)'"
     @close="() => { target = undefined; filter = ''; }"
