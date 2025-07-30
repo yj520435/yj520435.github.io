@@ -93,7 +93,7 @@ onUnmounted(() => {
       </footer>
     </div>
   </main>
-  <VShowdown
+  <VArticle
     :file="target"
     @load="() => filter = 'blur(10px)'"
     @close="() => { target = undefined; filter = ''; }"

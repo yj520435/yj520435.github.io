@@ -4,11 +4,11 @@ import hljs from 'highlight.js';
 import { ref, defineProps, defineEmits, watch, computed, Ref, h, VNode } from 'vue';
 import { useArchive } from '@/composables/useArchive';
 import { useAuthStore } from '@/stores/authStore';
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError } from 'axios';
 import { getFormattedDate } from '@/utils';
 import { usePopup } from '@/composables/usePopup';
 import { useToast } from '@/composables/useToast';
-import { useArticle } from '@/composables/useArticle';
+import ArticleWizard from '@/utils/article-wizard';
 
 const props = defineProps<{
   file?: File
@@ -34,12 +34,12 @@ const fileCopy: Ref<File> = ref({} as File);
 const loading = ref(false);
 const updating = ref(false);
   
-const handler = useArticle();
+const wizard = new ArticleWizard();
 
 const htmlRef = ref();
 const markdownRef = ref();
 
-const title = ref('');
+const title = computed(() => `<header><h1>${file.value?.name.substring(3) }</h1></header>`);
 const markdown = ref('');
 const markdownCopy = ref('');
 const opacity = ref(0);
@@ -103,8 +103,8 @@ watch(file, async (v?: File) => {
     loading.value = true;
     markdown.value = await fetchContents(v.id);
     markdownCopy.value = markdown.value;
-    (htmlRef.value as HTMLElement).innerHTML = `<header><h1>${v.name}</h1></header>`;
-    handler.convertToHtml(markdownCopy.value);
+    (htmlRef.value as HTMLElement).innerHTML = title.value;
+    wizard.convertMarkdownToHtml(markdownCopy.value, htmlRef.value);
     loading.value = false;
     opacity.value = 1;
     emits('load');
@@ -114,9 +114,8 @@ watch(file, async (v?: File) => {
 }, { deep: true });
 
 watch(htmlRef, v => {
-  if (v) {
-    handler.init(v);
-  }
+  if (v)
+    wizard.init(v);
 })
 
 const popup = usePopup('article');
@@ -186,24 +185,22 @@ function info() {
   popup.show(popupOption, slot);
 }
 
-async function rename(component: VNode) {
-  //
-}
-
 async function save(event: KeyboardEvent) {
   event.preventDefault();
 
   if (!file.value || !htmlRef.value) return;
   
   updating.value = true;
-  const markdown = mode.value === 'HTML' ? handler.convertToMarkdown(htmlRef.value) : markdownCopy.value;
+  const markdown = mode.value === 'HTML'
+    ? wizard.convertHtmlToMarkdown(htmlRef.value)
+    : markdownCopy.value;
   const response = await updateContents(file.value.id, markdown);
 
   if (!response) return;
 
   const toastOption: ToastOption = (response.status === 200) ? {
     icon: 'check',
-    text: '저장완료',
+    text: 'Saved',
     class: 'success'
   } : {
     icon: 'close',
@@ -221,18 +218,16 @@ async function changeMode() {
   mode.value = (mode.value === 'HTML') ? 'MARKDOWN' : 'HTML';
 
   if (mode.value === 'HTML') {
-    (htmlRef.value as HTMLElement).innerHTML = `<header><h1>${file.value?.name}</h1></header>`;
-    handler.convertToHtml(markdownCopy.value);
+    (htmlRef.value as HTMLElement).innerHTML = title.value;
+    wizard.convertMarkdownToHtml(markdownCopy.value, htmlRef.value);
   }
 
-  if (mode.value === 'MARKDOWN') {
-    markdownCopy.value = handler.convertToMarkdown(htmlRef.value);
-  }
+  if (mode.value === 'MARKDOWN')
+    markdownCopy.value = wizard.convertHtmlToMarkdown(htmlRef.value)
 }
 
 function close() {
   emits('close');
-  title.value = '';
   markdown.value = '';
   opacity.value = 0;
   mode.value = 'HTML';
@@ -274,9 +269,9 @@ function close() {
         <article
           v-show="mode === 'HTML'"
           :contenteditable="authStore.isAuthenticated"
-          @input="(e: Event) => handler.input(undefined, e as InputEvent)"
-          @keyup.enter.exact="handler.enter"
-          @keydown.tab="handler.tab"
+          @input="wizard.input(undefined)"
+          @keyup.enter.exact="wizard.enter"
+          @keydown.tab="wizard.tab"
           @keydown.ctrl.s="save"
           ref="htmlRef"
         >
