@@ -12,6 +12,7 @@ body {
   user-select: none;
   color: $text-color;
   font-family: 'galmuri9';
+  letter-spacing: 1px;
   font-size: 14px;
 }
 
@@ -150,6 +151,7 @@ button {
 
   * {
     line-height: 1.8;
+    letter-spacing: 0 !important;
   }
   
   > p {
@@ -267,7 +269,6 @@ button {
 
   img {
     max-width: 600px;
-    width: 100%;
     display: block;
     margin: 0 auto !important;
   }
@@ -301,7 +302,7 @@ button {
     width: 100%;
 
     thead {
-      background-color: #eeeeee;
+      background-color: #f3f3f3;
 
       th {
         border-top: 1px solid #aaaaaa;
@@ -311,9 +312,11 @@ button {
     }
 
     tbody {
+      td {
+        padding: 4px 20px;
+      }
 
       tr:not(.add-row) {
-
         td:not(.add-column) {
           border-bottom: 1px solid #aaaaaa;
         }
@@ -355,6 +358,7 @@ article {
     white-space: pre-wrap;
     min-height: 28.8px;
     margin: 0;
+    letter-spacing: 0 !important;
   }
 
   header {
@@ -457,14 +461,64 @@ article {
   }
 
   mark {
-    background: linear-gradient(white 0 60%, #ff000020 60% 90%, white 90%);
+    background: #ffd70020;
     padding: 0 4px;
   }
 
   img {
     max-width: 600px;
-    width: 100%;
     display: block;
     margin: 10px auto;
   }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+
+    thead {
+      background-color: #f3f3f3;
+
+      th {
+        border-top: 1px solid #aaaaaa;
+        border-bottom: 1px solid #aaaaaa;
+        padding: 0 20px;
+      }
+    }
+
+    tbody {
+      td {
+        padding: 4px 20px;
+      }
+
+      tr:not(.add-row) {
+        td:not(.add-column) {
+          border-bottom: 1px solid #aaaaaa;
+        }
+      }
+
+      .add-row {
+        background-color: #eeeeee;
+        min-height: 30px;
+        text-align: center;
+        border: none;
+      }
+
+      .add-column {
+        background-color: #eeeeee;
+        width: 30px;
+        text-align: center;
+        border: none;
+      }
+    }
+  }
+}
+
+input#file-name {
+  width: 100%;
+  outline: none;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid $text-color;
+  padding: 6px;
+  color: $text-color;
 }
