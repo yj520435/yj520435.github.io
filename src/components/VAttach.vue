@@ -13,7 +13,7 @@ async function open(id: string) {
       <div class="view">
         <VItem
           icon="attachment"
-          @click="open('1NI9RUVF4_cHcbzZu4DYczRoKbPTfSotl')"
+          @click="open('1ZPIVyJn1TUtJwRvbDQVE2cfRc8cZt2Lf')"
         >
           <template #text>
             <span>이력서</span>
