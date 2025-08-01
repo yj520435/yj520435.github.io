@@ -24,16 +24,3 @@ const title = computed(() => props.title ? props.text : undefined);
   </div>
   <slot name="subitem"></slot>
 </template>
-
-<style lang="scss" scoped>
-.item {
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-
-  img {
-    filter: $image-filter;
-  }
-}
-</style>

@@ -184,62 +184,10 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .wrapper {
-  display: grid;
-  gap: 24px;
+  grid-template-columns: 1fr !important;
 
   &.grid {
-    grid-template-columns: 1fr 140px;
-  }
-
-  #archive {
-    .view {
-      height: 200px;
-
-      .searching {
-        @include screen-for-waiting(search);
-      }
-      
-      .loading {
-        @include screen-for-waiting(rotate);
-      }
-      
-      .list {
-        height: 100%;
-        @extend .scroll;
-        @extend .base-view;
-        
-        :deep(.item) {
-          flex-wrap: wrap;
-
-          &:hover {
-            cursor: pointer;
-            text-decoration: underline;
-          }
-
-          span {
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: calc(100% - 26px);
-            overflow: hidden;
-          }
-        }
-      }
-    }
-  }
-
-  #admin {
-    .view {
-      height: 200px;
-      @extend .base-view;
-
-      :deep(.item) {
-        cursor: pointer;
-
-        &:hover {
-          text-decoration: underline;
-        }
-      }
-    }
+    grid-template-columns: auto 140px;
   }
 }
 </style>

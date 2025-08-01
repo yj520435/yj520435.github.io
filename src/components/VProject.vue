@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import VWrapper from './base/VWrapper.vue';
-import { projects } from '@/constants';
 import VItem from './base/VItem.vue';
+import { useDataStore } from '@/stores/dataStore';
+import { storeToRefs } from 'pinia';
+
+const dataStore = useDataStore();
+const { projects, isMobile } = storeToRefs(dataStore);
 
 const color = ref(false);
 const projectIndex = ref(0);
-const project = computed(() => projects[projectIndex.value]);
+const project = computed(() => projects.value[projectIndex.value]);
 
 const isFirstProject = computed(() => projectIndex.value === 0);
-const isLastProject = computed(() => projectIndex.value === projects.length - 1);
+const isLastProject = computed(() => projectIndex.value === projects.value.length - 1);
 
 const projectImage = computed(() => {
-  const id = projects[projectIndex.value].id;
+  const id = project.value.id;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const src = require(`@/assets/images/${id}.gif`);
   return `url(${src})`;
@@ -76,81 +80,3 @@ function next() {
     </div>
   </VWrapper>
 </template>
-
-<style lang="scss" scoped>
-.view {
-  height: calc(100% - 16px);
-  display: grid;
-  grid-template-rows: 290px 1fr 14px;
-  gap: 10px;
-
-  .image {
-    @extend .flex-center;
-    @extend .bg-image-center;
-    width: 100%;
-    transition: 500ms;
-    background-color: #00000030;
-    filter: grayscale(1) opacity(0.7);
-
-    &.color {
-      filter: none;
-    }
-  }
-
-  :deep(a) {
-    color: $text-color;
-    text-decoration: none;
-  }
-}
-
-.summary {
-  @extend .base-view;
-
-  .details {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-
-    span {
-      opacity: 0.6;
-      margin-left: 27px;
-    }
-  }
-}
-
-.paging {
-  @extend .label;
-  display: flex;
-  justify-content: right;
-  width: 100%;
-  align-items: center;
-  background-color: transparent;
-  margin-top: 10px;
-
-  div {
-    display: inline-flex;
-    align-items: center;
-
-    button {
-      @extend .bg-image-center;
-      @include icon(arrow-right-normal);
-      background-size: auto !important;
-      padding: 0;
-
-      &:first-child {
-        transform: rotate(-180deg);
-      }
-
-      &:disabled {
-        opacity: 0.3;
-      }
-    }
-
-    span {
-      display: inline-block;
-      width: 40px;
-      text-align: center;
-    }
-  }
-}
-</style>
