@@ -22,14 +22,3 @@ import VItem from './base/VItem.vue';
     </div>
   </VWrapper>
 </template>
-
-<style lang="scss" scoped>
-.view {
-  @extend .base-view;
-
-  :deep(.text) {
-    display: inline-grid;
-    grid-template-columns: 90px 20px 1fr;
-  }
-}
-</style>

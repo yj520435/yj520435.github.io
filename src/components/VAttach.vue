@@ -35,17 +35,3 @@ async function open(id: string) {
     </VWrapper>
   </div>
 </template>
-
-<style scoped lang="scss">
-.wrapper {
-  height: fit-content;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-
-  :deep(.text) {
-    text-decoration: underline;
-    cursor: pointer;
-  }
-}
-</style>

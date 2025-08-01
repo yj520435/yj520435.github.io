@@ -16,17 +16,3 @@ import VWrapper from './base/VWrapper.vue';
     </div>
   </VWrapper>
 </template>
-
-<style lang="scss" scoped>
-#contact {
-  .view {
-    @extend .base-view;
-  }
-}
-
-:deep(.text) {
-  a {
-    color: $text-color;
-  }
-}
-</style>
