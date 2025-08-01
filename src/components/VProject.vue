@@ -1,18 +1,22 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 import VWrapper from './base/VWrapper.vue';
-import { projects } from '@/constants';
 import VItem from './base/VItem.vue';
+import { useDataStore } from '@/stores/dataStore';
+import { storeToRefs } from 'pinia';
+
+const dataStore = useDataStore();
+const { projects, isMobile } = storeToRefs(dataStore);
 
 const color = ref(false);
 const projectIndex = ref(0);
-const project = computed(() => projects[projectIndex.value]);
+const project = computed(() => projects.value[projectIndex.value]);
 
 const isFirstProject = computed(() => projectIndex.value === 0);
-const isLastProject = computed(() => projectIndex.value === projects.length - 1);
+const isLastProject = computed(() => projectIndex.value === projects.value.length - 1);
 
 const projectImage = computed(() => {
-  const id = projects[projectIndex.value].id;
+  const id = project.value.id;
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const src = require(`@/assets/images/${id}.gif`);
   return `url(${src})`;

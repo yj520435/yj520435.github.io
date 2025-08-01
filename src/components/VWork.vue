@@ -1,23 +1,11 @@
 <script setup lang="ts">
-import { works } from '@/constants';
 import VWrapper from './base/VWrapper.vue';
-import { Work } from '@/types';
-import { defineEmits } from 'vue';
 import VItem from './base/VItem.vue';
+import { useDataStore } from '@/stores/dataStore';
+import { storeToRefs } from 'pinia';
 
-const emits = defineEmits(['load']);
-
-function loadWork(work: Work) {
-  if (work.id.startsWith('-'))
-    return;
-
-  emits('load', {
-    id: work.id,
-    name: work.name,
-    mimeType: 'text/x-markdown',
-    kind: ''
-  });
-}
+const dataStore = useDataStore();
+const { works } = storeToRefs(dataStore);
 </script>
 
 <template>

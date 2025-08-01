@@ -12,6 +12,8 @@ import VContact from './components/VContact.vue';
 import dayjs from 'dayjs';
 import { File } from './types';
 import VShowdown from './components/VShowdown.vue';
+import { useDataStore } from './stores/dataStore';
+import { storeToRefs } from 'pinia';
 
 const target: Ref<File | undefined> = ref();
 const filter: Ref<string> = ref('');
@@ -33,6 +35,9 @@ const columnMap = new Map()
   .set(2, [['profile', 'work', 'attach', 'archive'], ['skill', 'project', 'contact']])
   .set(3, [['profile', 'skill', 'archive'], ['project'], ['work', 'attach', 'contact']]);
 
+const dataStore = useDataStore();
+const { isMobile } = storeToRefs(dataStore);
+
 function resize() {
   const width = window.innerWidth;
   if (width > 1700)
@@ -41,6 +46,8 @@ function resize() {
     columnNum.value = 2;
   else
     columnNum.value = 1;
+
+  dataStore.setIsMobile(width < 520);
 }
 
 watch(columnNum, (v: number) => {
@@ -69,7 +76,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <main id="root" :style="{ filter }">
+  <main id="root" :class="{ mobile : isMobile }" :style="{ filter }">
     <VNavigation />
     <div id="container">
       <!-- header -->

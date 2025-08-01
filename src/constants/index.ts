@@ -9,11 +9,6 @@ export const CLIENT_ID =
 export const ROOT_FOLDER_ID = '101ySHAx1_ay6MZQy-69klLcz8l_vf_X2';
 export const FOLDER_MIME_TYPE = 'application/vnd.google-apps.folder';
 
-export { default as profile } from '@/data/profile.json';
-export { default as skills } from '@/data/skills.json';
-export { default as works } from '@/data/works.json';
-export { default as projects } from '@/data/projects.json';
-
 export const COOKIE_KEYS = [
   'access_token',
   'expiry_date',
