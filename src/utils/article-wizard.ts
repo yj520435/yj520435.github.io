@@ -12,6 +12,7 @@ export default class ArticleWizard {
   create(name: string, value?: string, props?: { [key: string]: string }) {
     const el = document.createElement(name);
     el.innerHTML = value ?? '';
+    // el[escaped ? 'textContent' : 'innerHTML'] = value ?? '';
 
     if (props) {
       Object.keys(props).forEach((key) => {
@@ -69,6 +70,8 @@ export default class ArticleWizard {
   input(el?: Element | HTMLElement) {
     this.clear(el);
     if (!this.target) return;
+
+    console.log(el);
 
     const codeblockValues = this.find(/```(\w*)(\n?)(?:((?:.*\n)*)```)*/g);
     codeblockValues?.forEach((v) => {
@@ -138,7 +141,7 @@ export default class ArticleWizard {
       this.clear(this.target);
 
     // const codeValues = this.find(/`([^`\s].+?[^`\s])`/g);
-    const codeValues = this.find(/`([^/]+?)`/g);
+    const codeValues = this.find(/`(.+?)`/g);
     codeValues?.forEach((v) => this.change(v, 'code', {}, v.input?.startsWith('```')));
     
 
@@ -287,8 +290,8 @@ export default class ArticleWizard {
     const array: Array<string> = [];
     let freeze = false, text = '';
 
-    for (const item of args.replaceAll('\r', '').split('\n')) {
-      
+    const paragraphs = args.replaceAll('\r', '').split('\n').map((v) => htmlCharToEntity(v));
+    for (const item of paragraphs) {
       const isCodeblock = item.includes('```');
       const isRawHtml = item.match(/<\/?(table|figure)(\sstyle=".*")?>/g);
       if (isCodeblock || isRawHtml) {
@@ -366,14 +369,24 @@ export default class ArticleWizard {
       // list
       else if (['UL', 'OL'].includes(tag)) {
         const tempArray: Array<string> = [];
+        
+        const hasNestedList = (n: Node) => ['UL', 'OL'].includes(n.nodeName);
 
         const findNestedList = (e: Element, depth: number) => {
           const items = e.childNodes;
           items.forEach((item, index) => {
             const spaceWidth = ' '.repeat(depth * 2);
             const listStyle = e.tagName === 'UL' ? '*' : `${index + 1}.`
-            tempArray.push(spaceWidth + listStyle + ' ' + item.firstChild?.textContent);
-            const nestedList = Array.from(item.childNodes).find((v) => ['UL', 'OL'].includes(v.nodeName));
+
+            const contents = Array.from(item.childNodes)
+              .filter((v) => !hasNestedList(v))
+              .map((v) => v.nodeType === Node.TEXT_NODE
+                ? v.textContent
+                : htmlEntityToCharExtension((v as Element).outerHTML)
+              );
+            tempArray.push(spaceWidth + listStyle + ' ' + contents.join(''));
+
+            const nestedList = Array.from(item.childNodes).find((v) => hasNestedList(v));
             if (nestedList)
               findNestedList(nestedList as Element, depth + 1);
           });
