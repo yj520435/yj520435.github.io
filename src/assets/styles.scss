@@ -211,14 +211,6 @@ button {
             @include icon(trash);
           }
         }
-        
-        &:nth-last-child(1) {
-          color: #a4d659;
-
-          img {
-            filter: invert(74%) sepia(57%) saturate(392%) hue-rotate(38deg) brightness(95%) contrast(94%);
-          }
-        }
       }
     }
   }
