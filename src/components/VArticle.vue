@@ -173,7 +173,7 @@ function info() {
     },
   ]
 
-  const slot = h('ul', { id: 'file-info' }, Array.from(infos).map(
+  const slot = h('ul', { class: 'info' }, Array.from(infos).map(
     (v) => h('li', [h('span', v.name), v.value])
   ));
 
