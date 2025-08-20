@@ -58,10 +58,10 @@ export function useArchive() {
     }
   }
 
-  async function createFile(mimeType: MimeType, parents: string[]) {
-    const isFolder = mimeType === 'application/vnd.google-apps.folder';
+  async function createFile(mimeType: MimeType, parents: string[], fileName: string) {
+    const isFile = mimeType === 'text/markdown';
     const fileMetadata = {
-      name: `New ${isFolder ? 'Folder' : 'File.md'}`,
+      name: fileName + (isFile ? '.md' : ''),
       parents,
       mimeType,
     };
