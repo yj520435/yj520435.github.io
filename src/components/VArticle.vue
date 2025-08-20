@@ -173,7 +173,7 @@ function info() {
     },
   ]
 
-  const slot = h('ul', { id: 'file-info' }, Array.from(infos).map(
+  const slot = h('ul', { class: 'info' }, Array.from(infos).map(
     (v) => h('li', [h('span', v.name), v.value])
   ));
 
@@ -270,7 +270,6 @@ function close() {
           v-show="mode === 'HTML'"
           :contenteditable="authStore.isAuthenticated"
           @input="wizard.input(undefined)"
-          @keyup.enter.exact="wizard.enter"
           @keydown.tab="wizard.tab"
           @keydown.ctrl.s="save"
           ref="htmlRef"

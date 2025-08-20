@@ -1,26 +1,25 @@
 export default class ArticleWizard {
-  root?: HTMLElement
-  target?: HTMLElement | Element | null;
-  text?: string;
+  root?: HTMLElement;
 
+  target?: Element | HTMLElement | null;
+  text?: string;
   isTyping?: boolean;
 
-  init(element: HTMLElement) {
-    this.root = element;
+  init(root: HTMLElement) {
+    this.root = root;
   }
 
-  create(name: string, value?: string, props?: { [key: string]: string }) {
-    const el = document.createElement(name);
-    el.innerHTML = value ?? '';
-    // el[escaped ? 'textContent' : 'innerHTML'] = value ?? '';
+  create(name: string, value = '', props?: { [key: string]: string }) {
+    const element = document.createElement(name);
+    element.innerHTML = value;
 
     if (props) {
       Object.keys(props).forEach((key) => {
-        el.setAttribute(key, props[key]);
+        element.setAttribute(key, props[key]);
       });
     }
 
-    return el;
+    return element;
   }
 
   focus(node: Node, offset?: number) {
@@ -32,7 +31,8 @@ export default class ArticleWizard {
 
     if (offset) {
       range.setStart(node, offset);
-      range.setEnd(node, offset);
+
+      if (offset > 0) range.setEnd(node, offset);
     } else {
       range.selectNodeContents(node);
     }
@@ -47,44 +47,36 @@ export default class ArticleWizard {
     return matched.length > 0 ? matched : null;
   }
 
-
-  clear(element?: Element | HTMLElement) {
+  clear(element?: Element) {
     this.isTyping = Boolean(!element);
 
     if (element) {
       this.target = element;
       this.text = element.innerHTML;
     } else {
-      const selection = window.getSelection();
-      const node = selection?.focusNode;
-
+      const { node } = getCursor();
       if (!node) return;
-
-      this.target = (node.nodeType === Node.TEXT_NODE)
-        ? node?.parentElement
-        : node as HTMLElement;
+      this.target = node instanceof HTMLElement ? node : node?.parentElement;
       this.text = node?.textContent ?? '';
     }
   }
 
-  input(el?: Element | HTMLElement) {
-    this.clear(el);
+  input(args?: Element) {
+    this.clear(args);
     if (!this.target) return;
-
-    console.log(el);
 
     const codeblockValues = this.find(/```(\w*)(\n?)(?:((?:.*\n)*)```)*/g);
     codeblockValues?.forEach((v) => {
-      const code = (v[3] ?? '').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+      const next = this.target?.nextElementSibling;
 
+      const code = (v[3] ?? '').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
       const parent = this.create('pre');
       const child = this.create('code', code);
-      
       parent.append(child);
       this.target?.replaceWith(parent);
 
-      if (v[1])
-        parent?.firstElementChild?.classList.add(v[1]);
+      if (!args && !next) parent.insertAdjacentHTML('afterend', '<p></p>');
+      if (v[1]) parent?.firstElementChild?.classList.add(v[1]);
     });
 
     const headerValues = this.find(/^#{1,6}\s(.*)$/g);
@@ -97,13 +89,19 @@ export default class ArticleWizard {
     const blockquoteValues = this.find(/^(?:>|&gt;)\s(.*)/g);
     blockquoteValues?.forEach((v) => {
       const prev = this.target?.previousElementSibling;
+      const next = this.target?.nextElementSibling;
 
       if (prev?.tagName === 'BLOCKQUOTE') {
-        prev.innerHTML = prev.innerHTML + '\n' + v[1];
+        prev.innerHTML = prev.innerHTML + `<p>${v[1]}</p>`;
         this.target?.remove();
       } else {
-        const blockquote = this.create('blockquote', v[1]);
+        const blockquote = this.create('blockquote');
+        const p = this.create('p', v[1]);
+        blockquote.appendChild(p);
+
         this.target?.replaceWith(blockquote);
+        if (!args && !next) blockquote.insertAdjacentHTML('afterend', '<p></p>');
+
         this.clear(blockquote);
       }
     });
@@ -112,14 +110,14 @@ export default class ArticleWizard {
     unorderedListValues?.forEach((v, i) => {
       const depth = v[0].indexOf('*');
       const listItem = this.list('ul', depth, v[1]);
-      this.clear(listItem);
+      if (listItem) this.clear(listItem);
     });
 
     const orderedListValues = this.find(/^\s*\d\.\s(.*\n*)/gm);
     orderedListValues?.forEach((v) => {
       const depth = v[0].indexOf('.') - 1;
       const listItem = this.list('ol', depth, v[1]);
-      this.clear(listItem);
+      if (listItem) this.clear(listItem);
     });
 
     const horizontalRuleValues = this.find(/---/g);
@@ -134,59 +132,59 @@ export default class ArticleWizard {
     const italicValues = this.find(/\*(.+?)\*/g);
     italicValues?.forEach((v) => this.change(v, 'em', {}, v[1].startsWith('*')));
 
+    const strokeValues = this.find(/~~(.+?)~~/g);
+    strokeValues?.forEach((v) => this.change(v, 's', {}));
+
     const escapedCodeValues = this.find(/``\s(.+?)\s``/g);
-    escapedCodeValues?.forEach((v) => this.change(v, 'code', {}, v.input?.startsWith('```')));
+    escapedCodeValues?.forEach((v) =>
+      this.change(v, 'code', {}, v.input?.startsWith('```'))
+    );
 
-    if (escapedCodeValues)
-      this.clear(this.target);
+    if (escapedCodeValues) this.clear(this.target);
 
-    // const codeValues = this.find(/`([^`\s].+?[^`\s])`/g);
     const codeValues = this.find(/`(.+?)`/g);
     codeValues?.forEach((v) => this.change(v, 'code', {}, v.input?.startsWith('```')));
-    
-
-    // const codeValues = this.find(/`([^!</code>].+?)`/g);
-
 
     const markValues = this.find(/==(.+?)==/g);
     markValues?.forEach((v) => this.change(v, 'mark', {}));
 
-    // const imageValues = this.find(/^!\[(.*?)\]\((.+?)\)/g);
-    const imageValues = this.find(/^!\[(.*?)\]\(([^\s]+?)(?:\s=(\d+%?|auto)x(\d+%?|auto))?\)/g);
-    imageValues?.forEach((v) => this.change(v, 'img', {
-      src: v[2].replaceAll('&amp;', '&'),
-      alt: v[1] ?? 'image',
-      width: v[3] ?? '100%',
-      height: v[4] ?? '100%'
-    }));
+    const imageValues = this.find(
+      /^!\[(.*?)\]\(([^\s]+?)(?:\s=(\d+%?|auto)x(\d+%?|auto))?\)/g
+    );
+    imageValues?.forEach((v) =>
+      this.change(v, 'img', {
+        src: v[2].replaceAll('&amp;', '&'),
+        alt: v[1] ?? 'image',
+        width: v[3] ?? '100%',
+        height: v[4] ?? '100%',
+      })
+    );
 
     const linkValues = this.find(/\[(.*?)\]\((.+?)\)/g);
-    linkValues?.forEach((v) => this.change(v, 'a', {
-      href: v[2],
-      target: '_blank'
-    }, v.input?.startsWith('!')));
+    linkValues?.forEach((v) =>
+      this.change(
+        v,
+        'a',
+        {
+          href: v[2],
+          target: '_blank',
+        },
+        v.input?.startsWith('!')
+      )
+    );
   }
 
-  enter() {
-    const selection = window.getSelection();
-    const node = selection?.focusNode;
-
-    if (!node) return;
-
-    if (['DIV', 'H6'].includes(node.nodeName))
-      this.target?.replaceWith(this.create('p'));
-  }
-
-  tab(event: VEvent<HTMLElement>) {
+  tab(event: Event) {
     event.preventDefault();
 
     const { node } = getCursor();
 
     if (node?.nodeName === 'LI') {
-      const prev = (node as HTMLElement).previousElementSibling;
+      const prev = node.previousSibling;
       if (!prev) return;
 
-      (node as HTMLElement).remove();
+      if (node instanceof HTMLElement)
+        node.remove();
 
       const ul = this.create('ul');
       const li = this.create('li');
@@ -211,18 +209,20 @@ export default class ArticleWizard {
     // by Typing
     if (this.isTyping) {
       const { node, offset } = getCursor();
-      
+
       if (!offset) return;
 
       const text = node?.textContent ?? '';
       const childNodes = Array.from(this.target.childNodes.values());
       const index = childNodes.findIndex((v) => v === node);
 
-      const prevNodes = childNodes.filter((v, i) => i < index).map((v) => v as Node);
-      const splitText = document.createTextNode(text.substring(0, offset - match[0].length));
+      const prevNodes = childNodes.filter((v, i) => i < index);
+      const splitText = document.createTextNode(
+        text.substring(0, offset - match[0].length)
+      );
       const nextNodes = [
         document.createTextNode(text.substring(offset) || ZERO_WIDTH_SPACE),
-        ...childNodes.filter((v, i) => i > index).map((v) => v as Node)
+        ...childNodes.filter((v, i) => i > index),
       ];
 
       this.target.replaceChildren(...prevNodes, splitText, element, ...nextNodes);
@@ -232,19 +232,15 @@ export default class ArticleWizard {
     else {
       this.target.innerHTML = this.target.innerHTML.replace(match[0], element.outerHTML);
     }
-
   }
 
   list(name: string, depth: number, content: string) {
-    // (name, depth, content, this.target);
     if (!this.target) return;
 
     const prev = this.target.previousElementSibling;
     if (!prev) return;
 
     const hasPrevList = prev && ['UL', 'OL'].includes(prev.tagName);
-
-    // console.log(hasPrevList);
 
     if (depth === 0) {
       // List #2, #3, ...
@@ -262,14 +258,15 @@ export default class ArticleWizard {
         this.target.replaceWith(listHeader);
         return listItem;
       }
-    }
-    else {
-      const appendedTarget = listIterator(prev, depth / 2);
+    } else {
+      const appendedTarget = findParentList(prev, depth / 2);
       if (!appendedTarget) return;
 
-      const nestedListHeader = Array.from(appendedTarget.childNodes).find((v) => ['UL', 'OL'].includes(v.nodeName));
+      const nestedListHeader = Array.from(appendedTarget.childNodes).find((v) =>
+        ['UL', 'OL'].includes(v.nodeName)
+      );
       const listItem = this.create('li', content);
-      
+
       // Nested List #2, #3, ...
       if (nestedListHeader) {
         nestedListHeader.appendChild(listItem);
@@ -286,11 +283,16 @@ export default class ArticleWizard {
     }
   }
 
-  convertMarkdownToHtml(args: string, destination: HTMLElement): void {
-    const array: Array<string> = [];
-    let freeze = false, text = '';
+  convertMarkdownToHtml(args: string, dest: HTMLElement) {
+    const array = [];
+    let freeze = false,
+      text = '';
 
-    const paragraphs = args.replaceAll('\r', '').split('\n').map((v) => htmlCharToEntity(v));
+    const paragraphs = args
+      .replaceAll('\r', '')
+      .split('\n')
+      .map((v) => htmlCharToEntity(v));
+
     for (const item of paragraphs) {
       const isCodeblock = item.includes('```');
       const isRawHtml = item.match(/<\/?(table|figure)(\sstyle=".*")?>/g);
@@ -302,45 +304,41 @@ export default class ArticleWizard {
           array.push(text);
           text = '';
         }
-        
+
         continue;
       }
 
-      if (freeze)
-        text += item + '\n';
-      else
-        array.push(item);
+      if (freeze) text += item + '\n';
+      else array.push(item);
     }
 
     const parser = new DOMParser();
     array.forEach((v) => {
       const parsed = parser.parseFromString(v, 'text/html');
       const element = parsed.body.firstElementChild ?? this.create('p', v);
-      destination.appendChild(element);
+      dest.appendChild(element);
       this.input(element);
-
-      // console.log(parsed.body.childElementCount);
-      // const element = document.createElement('P');
-      // element.innerHTML = v;
-    })
+    });
   }
 
   convertHtmlToMarkdown(args: HTMLElement) {
-    const array: Array<string> = [];
+    const array = [];
 
     for (const element of args.children) {
       const tag = element.tagName;
 
-      // if (!element.innerHTML)
-      //   continue;
-      
       // root header
       if (tag === 'HEADER') {
         continue;
       }
 
+      // horizontal line
+      else if (tag === 'HR') {
+        array.push('---');
+      }
+
       // header
-      else if (element.tagName.startsWith('H')) {
+      else if (['H1', 'H2', 'H3', 'H4', 'H5', 'H6'].includes(tag)) {
         const size = '#'.repeat(Number(tag.charAt(1)));
         const text = htmlEntityToCharExtension(element.innerHTML);
         array.push(`${size} ${text}`);
@@ -348,8 +346,9 @@ export default class ArticleWizard {
 
       // blockquote
       else if (tag === 'BLOCKQUOTE') {
-        const text = htmlEntityToCharExtension(element.innerHTML);
-        text.split('\n').forEach((t) => array.push(`> ${t}`));
+        const temp: string[] = [];
+        findNestedBlockquote(element, 0, temp);
+        array.push(temp.join('\n'));
       }
 
       // codeblock
@@ -360,7 +359,7 @@ export default class ArticleWizard {
           code.classList.remove('hljs');
           if (i === 0)
             tempArray.push('```' + (code.classList.length > 0 ? code.classList[0] : ''));
-          tempArray.push(text.endsWith('\n') ? text.slice(0, -1) : text)
+          tempArray.push(text.endsWith('\n') ? text.slice(0, -1) : text);
         }
         tempArray.push('```');
         array.push(tempArray.join('\n'));
@@ -368,37 +367,13 @@ export default class ArticleWizard {
 
       // list
       else if (['UL', 'OL'].includes(tag)) {
-        const tempArray: Array<string> = [];
-        
-        const hasNestedList = (n: Node) => ['UL', 'OL'].includes(n.nodeName);
-
-        const findNestedList = (e: Element, depth: number) => {
-          const items = e.childNodes;
-          items.forEach((item, index) => {
-            const spaceWidth = ' '.repeat(depth * 2);
-            const listStyle = e.tagName === 'UL' ? '*' : `${index + 1}.`
-
-            const contents = Array.from(item.childNodes)
-              .filter((v) => !hasNestedList(v))
-              .map((v) => v.nodeType === Node.TEXT_NODE
-                ? v.textContent
-                : htmlEntityToCharExtension((v as Element).outerHTML)
-              );
-            tempArray.push(spaceWidth + listStyle + ' ' + contents.join(''));
-
-            const nestedList = Array.from(item.childNodes).find((v) => hasNestedList(v));
-            if (nestedList)
-              findNestedList(nestedList as Element, depth + 1);
-          });
-        };
-
-        findNestedList(element, 0);
-        array.push(tempArray.join('\n'));
+        const temp: string[] = [];
+        findNestedList(element, 0, temp);
+        array.push(temp.join('\n'));
       }
 
       // raw-html
       else if (['FIGURE', 'TABLE'].includes(tag)) {
-        console.log('>>>>', element);
         array.push(element.outerHTML);
       }
 
@@ -424,13 +399,11 @@ function getCursor() {
 }
 
 function htmlEntityToChar(html: string) {
-  return html
-    .replaceAll('&lt;', '<')
-    .replaceAll('&gt;', '>');
+  return html.replaceAll('&lt;', '<').replaceAll('&gt;', '>');
 }
 
 function htmlEntityToCharExtension(html: string) {
-    return html
+  return html
     .replaceAll('<br>', '')
     .replaceAll('\u200B', '')
     .replaceAll('&lt;', '<')
@@ -441,23 +414,53 @@ function htmlEntityToCharExtension(html: string) {
     .replaceAll(/<em>(.+?)<\/em>/g, '*$1*')
     .replaceAll(/<mark>(.+?)<\/mark>/g, '==$1==')
     .replaceAll(/<a href="(.+?)" target="_blank">(.+?)<\/a>/g, '[$2]($1)')
-    .replaceAll(/<img src="(.+?)" alt="(.+?)">/g, '![$2]($1)');
+    .replaceAll(/<img src="(.+?)" alt="(.+?)">/g, '![$2]($1)')
+    .replaceAll(/<s>(.+?)<\/s>/g, '~~$1~~');
 }
 
 function htmlCharToEntity(html: string) {
-  return html
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;');
+  return html.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 }
 
-function listIterator(parent: Element, iterate: number): Element | null {
+function findParentList(parent: Element, iterate: number): Element | null {
   const child = parent.lastElementChild;
   const nestedElement = child?.lastElementChild;
-  return (nestedElement && iterate - 1 > 0)
-    ? listIterator(nestedElement, iterate - 1)
+
+  return nestedElement && iterate - 1 > 0
+    ? findParentList(nestedElement, iterate - 1)
     : child;
 }
 
-interface VEvent<T extends EventTarget> extends Event {
-  target: T;
+function findNestedList(element: Element, depth: number, destination: string[]) {
+  const hasNestedList = (node: Node) => ['UL', 'OL'].includes(node.nodeName);
+
+  const items = element.childNodes;
+  items.forEach((item, index) => {
+    const spaceWidth = ' '.repeat(depth * 2);
+    const listStyle = element.tagName === 'UL' ? '*' : `${index + 1}.`;
+
+    const contents = Array.from(item.childNodes)
+      .filter((v) => !hasNestedList(v))
+      .map((v) =>
+        v instanceof HTMLElement ? htmlEntityToCharExtension(v.outerHTML) : v.textContent
+      );
+
+    destination.push(spaceWidth + listStyle + ' ' + contents.join(''));
+
+    const nestedList = Array.from(item.childNodes).find((v) => hasNestedList(v));
+    if (nestedList && nestedList instanceof Element)
+      findNestedList(nestedList, depth + 1, destination);
+  });
+}
+
+function findNestedBlockquote(element: Element, depth: number, destination: string[]) {
+  const items = element.children;
+  Array.from(items).forEach((item) => {
+    if (item.tagName === 'P') {
+      const text = htmlCharToEntity(item.innerHTML);
+      text.split('\n').forEach((t) => destination.push(`${'>'.repeat(depth + 1)} ${t}`));
+    }
+
+    if (item.tagName === 'BLOCKQUOTE') findNestedBlockquote(item, depth + 1, destination);
+  });
 }

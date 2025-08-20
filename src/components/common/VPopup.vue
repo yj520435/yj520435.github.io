@@ -11,6 +11,12 @@ const emits = defineEmits<{
 }>();
 
 const option = computed(() => props.option);
+
+async function submit() {
+  emits('close');
+  if (option.value.submit?.callback)
+    await option.value.submit.callback();
+}
 </script>
 
 <template>
@@ -32,7 +38,7 @@ const option = computed(() => props.option);
           <button
             v-if="option.submit"
             :class="option.submit.type"
-            @click="option.submit.callback()"
+            @click="submit"
           >
             {{ option.submit.text }}
           </button>
