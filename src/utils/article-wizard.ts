@@ -65,6 +65,10 @@ export default class ArticleWizard {
     this.clear(args);
     if (!this.target) return;
 
+    // prevent event
+    if (['H1', 'H2', 'H3', 'CODE'].includes(this.target.tagName))
+      return;
+
     const codeblockValues = this.find(/```(\w*)(\n?)(?:((?:.*\n)*)```)*/g);
     codeblockValues?.forEach((v) => {
       const next = this.target?.nextElementSibling;
@@ -172,6 +176,16 @@ export default class ArticleWizard {
         v.input?.startsWith('!')
       )
     );
+  }
+
+  enter(event: Event) {
+    if (this.target?.tagName === 'DIV')
+      this.target.replaceWith(this.create('p'));
+
+    if (this.target?.tagName === 'LI') {
+      const prev = this.target.previousElementSibling;
+      console.log(prev);
+    }
   }
 
   tab(event: Event) {
