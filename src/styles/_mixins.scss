@@ -20,7 +20,12 @@
 }
 
 @mixin article-header($size) {
+  font-family: 'galmuri11';
   font-weight: 900;
   font-size: #{$size};
-  line-height: 1.3 !important;
+}
+
+@mixin min-line-height($height) {
+  min-height: $height;
+  line-height: $height;
 }
